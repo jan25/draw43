@@ -5,13 +5,14 @@ const Fourier = {};
 /**
  * 
  * @param {Array<Point>} data  list of points representing a time function in 2D.
- * @param {int} nFreq number of sub frequency functions to split into.
+ * @param {int} nFreq half number of sub frequency functions to split into.
  * 
  * @returns Starting positions for each sub function for each frequency.
  */
 Fourier.Transform = (data, nFreq) => {
+    Log.i('data:', data);
     const N = data.length;
-    const frequencies = [];
+    const frequencies = {};
 
     const [lowFreq, highFreq] = [-Math.round(nFreq / 2), nFreq - Math.round(nFreq / 2)]
     Log.i('Using frequency range:', lowFreq, highFreq);
@@ -31,14 +32,14 @@ Fourier.Transform = (data, nFreq) => {
 
             // add this data point's contribution
             point = point.add(
-                data[t].mul(new Point(Math.cos(distance), Math.cos(distance)))
+                data[t].mul(new Point(Math.cos(distance), Math.sin(distance)))
             );
         }
 
         // Average contribution at this frequency
         point = point.div(N);
 
-        frequencies.push([freq, point]);
+        frequencies[freq] = point;
     }
 
     return frequencies;
