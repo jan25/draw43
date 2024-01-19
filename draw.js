@@ -4,7 +4,8 @@ GREY_COL = 150;
 BG_COL = BLACK_COL;
 CANVAS_W = 1000
 CANVAS_H = 1000
-FRAME_RATE = 3
+FRAME_RATE = 30 
+SLOWNESS_FAC = 10
 
 const Series = {}
 
@@ -25,6 +26,7 @@ Series.getData = () => {
 }
 
 const series = Series.getData();
+const drawn = [];
 const halfNFreq = 5;
 const frequencies = Fourier.Transform(series, 2 * halfNFreq);
 Log.i('post frequencies calc: ', frequencies);
@@ -32,7 +34,7 @@ Log.i('post frequencies calc: ', frequencies);
 new p5((p) => {
 
     angleIncFrac = () => {
-        return 360 / FRAME_RATE;
+        return 2 * Math.PI / (SLOWNESS_FAC * FRAME_RATE);
     }
 
     advanceTime = () => {
@@ -70,17 +72,29 @@ new p5((p) => {
             center = center.add(frequencies[-f])
             Log.i('center', center);
         }
-
-        p.stroke('red');
-        p.strokeWeight(2);
-        p.point(center.re, center.im);
-
+        // TODO prune
+        drawn.push(center);
+        drawDrawn();
 
         // mag = p.dist(0, 0, p.mouseX - 200, p.mouseY - 200);
         // angle = p.atan2(p.mouseY - 200, p.mouseX - 200);
         // drawArrowAndEpicycle(0, 0, mag, angle);
 
         advanceTime();
+    }
+
+    drawDrawn = () => {
+        p.push()
+
+        p.stroke('red');
+        p.strokeWeight(2);
+        for (const i in drawn) {
+            if (i == 0) continue;
+            // TODO use p5 bazier curves
+            p.line(drawn[i - 1].re, drawn[i - 1].im, drawn[i].re, drawn[i].im);
+        }
+
+        p.pop()
     }
 
     drawSampleSeries = () => {
@@ -100,7 +114,6 @@ new p5((p) => {
     drawArrowAndEpicycle = (x, y, mag, angle) => {
         p.push()
 
-        // TODO draw arrow is broken!!
         drawArrow(x, y, mag, angle);
         drawEpicycle(x, y, mag); 
 
@@ -108,17 +121,18 @@ new p5((p) => {
     }
 
     drawArrow = (x, y, mag, angle) => {
-        // Log.i('drawArrow:', x, y, mag, angle);
         p.push();
 
         p.stroke(WHITE_COL);
+        p.translate(x, y);
         p.rotate(angle);
-        p.line(x, y, x + mag, y);
+        p.line(0, 0, mag, 0);
 
         // TODO use applyMatrix to rotate and translate
         // TODO use adaptive headSize based on arrow length so Smaller arrow have visible heads
+        // p.rotate(angle);
         headSize = mag / 10;
-        p.translate(x + mag - headSize, y);
+        p.translate(mag - headSize, 0);
         p.noStroke();
         p.fill(WHITE_COL);
         p.triangle(0, headSize / 2, headSize, 0, 0, -headSize / 2);
