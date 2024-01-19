@@ -16,30 +16,47 @@ new p5((p) => {
         p.background(BG_COL);
 
         p.translate(200, 200);
-        drawArrow(0, 0, p.mouseX - 200, p.mouseY - 200);
+        mag = p.dist(0, 0, p.mouseX - 200, p.mouseY - 200);
+        angle = p.atan2(p.mouseY - 200, p.mouseX - 200);
+        drawArrowAndEpicycle(0, 0, mag, angle);
+        // drawArrow(0, 0, p.mouseX - 200, p.mouseY - 200);
 
-        drawEpicycle(0, 0, p.dist(0, 0, p.mouseX - 200, p.mouseY - 200) + 12);
+        // drawEpicycle(0, 0, p.dist(0, 0, p.mouseX - 200, p.mouseY - 200) + 12);
     }
 
-    drawArrow = (x1, y1, x2, y2) => {
-        p.push();
-        p.stroke(WHITE_COL);
-        p.line(x1, y1, x2, y2);
+    drawArrowAndEpicycle = (x, y, mag, angle) => {
+        p.push()
 
-        p.translate(x2, y2);
-        angle = p.atan2(y2 - y1, x2 - x1);
-        p.rotate(angle);
-        p.noStroke();
-        p.fill(WHITE_COL);
-        p.triangle(0, 6, 12, 0, 0, -6);
+        drawArrow(x, y, mag, angle);
+        drawEpicycle(x, y, mag); 
+
         p.pop()
     }
 
-    drawEpicycle = (x1, y1, radius) => {
+    drawArrow = (x, y, mag, angle) => {
         p.push();
+
+        p.stroke(WHITE_COL);
+        p.rotate(angle);
+        p.line(x, y, x + mag, y);
+
+        // TODO use applyMatrix to rotate and translate
+        // TODO use adaptive headSize based on arrow length so Smaller arrow have visible heads
+        headSize = mag / 10;
+        p.translate(x + mag - headSize, y);
+        p.noStroke();
+        p.fill(WHITE_COL);
+        p.triangle(0, headSize / 2, headSize, 0, 0, -headSize / 2);
+
+        p.pop()
+    }
+
+    drawEpicycle = (x, y, radius) => {
+        p.push();
+
         p.noFill();
         p.stroke('powderblue');
-        p.circle(x1, y1, 2 * radius);
+        p.circle(x, y, 2 * radius);
 
         p.pop();
     }

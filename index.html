@@ -4,13 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Draw 4 3</title>
-    <link rel="stylesheet" href="./style.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            background-color: gray;
+        }
+
+        #draw-area {
+            margin: auto;
+        }
+    </style>
+    <script src="./lib/p5.min.js"></script>
+    <script src="./lib/complex.min.js"></script>
+    <script src="./utils.js"></script>
+    <script src="./fourier.js"></script>
+    <script src="./draw.js"></script>
 </head>
 <body>
-    <h1>Hello, world!</h1>
-    <p>This is a simple HTML page..</p>
     <canvas id="draw-area"/>
 </body>
-<script src="./lib/p5.min.js"></script>
-<script src="./draw.js"></script>
+<script>
+    Log.debugMode();
+    Log.i('Testing logger');
+</script>
 </html>
