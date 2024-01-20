@@ -9,13 +9,13 @@ Log.debugMode = () => {
 // info
 Log.i = (...things) => {
     if (LOGGER_ENABLED) {
-        console.log(things);
+        console.log(...things);
     }
 }
 
 // errs
 Log.e = (...things) => {
-    console.error(things);
+    console.error(...things);
 }
 
 if (typeof Complex === 'undefined') {

@@ -29,10 +29,11 @@ Series.getData = () => {
     return data;
 }
 
-const series = Series.getData();
-const drawn = [];
-const halfNFreq = 5;
-const frequencies = Fourier.Transform(series, 2 * halfNFreq);
+let series = Series.getData();
+let drawn = [];
+let nextSeries = [];
+const halfNFreq = 10;
+let frequencies = Fourier.Transform(series, 2 * halfNFreq);
 Log.i('post frequencies calc: ', frequencies);
 
 new p5((p) => {
@@ -49,7 +50,26 @@ new p5((p) => {
 
     p.setup = () => {
         p.frameRate(FRAME_RATE);
-        p.createCanvas(CANVAS_W, CANVAS_H, document.getElementById("draw-area"));
+        const can = p.createCanvas(CANVAS_W, CANVAS_H, document.getElementById("draw-area"));
+
+        enableMouseDrawingInputs(can);
+    }
+
+    enableMouseDrawingInputs = (canvas) => {
+        canvas.mousePressed(() => {
+            nextSeries = [];
+        });
+        canvas.mouseMoved(() => {
+            if (p.mouseIsPressed) {
+                nextSeries.push(new Point(p.mouseX - CENTER_X, p.mouseY - CENTER_Y));
+            }
+        });
+        canvas.mouseReleased(() => {
+            series = nextSeries;
+            nextSeries = [];
+            drawn = [];
+            frequencies = Fourier.Transform(series, 2 * halfNFreq);
+        });
     }
 
     p.draw = () => {
@@ -58,23 +78,21 @@ new p5((p) => {
         p.background(BG_COL);
         p.translate(CENTER_X, CENTER_Y);
 
-        drawSampleSeries();
+        drawSampleSeries(series);
+        drawSampleSeries(nextSeries);
 
         const [centerX, centerY] = [0, 0];
         center = new Point(centerX, centerY);
 
         drawArrowAndEpicycleWithCenterVector(center, frequencies[0]);
         center = center.add(frequencies[0]);
-        Log.i('center', center);
 
         for (let f = 1; f <= halfNFreq; f += 1) {
             drawArrowAndEpicycleWithCenterVector(center, frequencies[f]);
             center = center.add(frequencies[f])
-            Log.i('center', center);
 
             drawArrowAndEpicycleWithCenterVector(center, frequencies[-f]);
             center = center.add(frequencies[-f])
-            Log.i('center', center);
         }
         // TODO prune
         drawn.push(center);
@@ -101,12 +119,20 @@ new p5((p) => {
         p.pop()
     }
 
-    drawSampleSeries = () => {
+    drawSampleSeries = (series) => {
         p.push()
 
+        Log.i('sample series:', series);
+        if (series.length === 0) {
+            Log.i('skip drawing empty series');
+            return;
+        }
+
         p.stroke(WHITE_COL);
-        const [start, end] = [series[0], series[series.length - 1]];
-        p.line(start.re, start.im, end.re, end.im);
+        for (let i = 1; i < series.length; i++) {
+            const [start, end] = [series[i - 1], series[i]];
+            p.line(start.re, start.im, end.re, end.im);
+        }
 
         p.pop()
     }
