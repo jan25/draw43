@@ -14,7 +14,7 @@ CENTER_Y = 250;
 let series = Series.getData();
 let drawn = [];
 let nextSeries = [];
-const halfNFreq = 10;
+const halfNFreq = 20;
 let frequencies = Fourier.Transform(series, 2 * halfNFreq);
 Log.i('post frequencies calc: ', frequencies);
 

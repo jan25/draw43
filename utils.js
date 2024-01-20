@@ -24,7 +24,7 @@ Log.e = (...things) => {
     console.error(...things);
 }
 
-// Input function utilities.
+// Input time function utilities.
 const Series = {}
 
 Series.parseSvg = () => {
