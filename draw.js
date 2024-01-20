@@ -1,11 +1,15 @@
 WHITE_COL = 255;
 BLACK_COL = 0;
 GREY_COL = 150;
+DIM_GREY = 75;
 BG_COL = BLACK_COL;
 CANVAS_W = 1000
 CANVAS_H = 1000
 FRAME_RATE = 30 
 SLOWNESS_FAC = 10
+
+CENTER_X = 300
+CENTER_Y = 250
 
 const Series = {}
 
@@ -14,12 +18,12 @@ Series.parseSvg = () => {
 }
 
 Series.getData = () => {
-    const y = 450;
-    const [x1, x2] = [50, 450];
+    const y = 100;
+    const [x1, x2] = [-200, 200];
 
     // IDEA: cache fourier frequencies between renders.
     data = [];
-    for (let x = x1; x <= x2; x += 1) {
+    for (let x = x1; x <= x2; x += 0.3) {
         data.push(new Point(x, y));
     }
     return data;
@@ -52,7 +56,7 @@ new p5((p) => {
         Log.i('frequencies before draw:', frequencies);
 
         p.background(BG_COL);
-        p.translate(300, 200);
+        p.translate(CENTER_X, CENTER_Y);
 
         drawSampleSeries();
 
@@ -130,7 +134,6 @@ new p5((p) => {
 
         // TODO use applyMatrix to rotate and translate
         // TODO use adaptive headSize based on arrow length so Smaller arrow have visible heads
-        // p.rotate(angle);
         headSize = mag / 10;
         p.translate(mag - headSize, 0);
         p.noStroke();
@@ -141,11 +144,10 @@ new p5((p) => {
     }
 
     drawEpicycle = (x, y, radius) => {
-        // Log.i('drawArrow:', x, y, radius);
         p.push();
 
         p.noFill();
-        p.stroke('powderblue');
+        p.stroke(DIM_GREY);
         p.circle(x, y, 2 * radius);
 
         p.pop();

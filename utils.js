@@ -18,7 +18,7 @@ Log.e = (...things) => {
     console.error(things);
 }
 
-if (!Complex) {
+if (typeof Complex === 'undefined') {
     Log.e('Complex library not available');
 }
 
