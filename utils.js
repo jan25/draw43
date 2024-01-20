@@ -1,14 +1,20 @@
-LOGGER_ENABLED = false;
 
+if (typeof Complex === 'undefined') {
+    Log.e('Complex library not available');
+}
+
+// Point is a vector in 2D space represented as a
+// complex number for easier manipulation.
+Point = Complex
+
+// Logger utilities.
 const Log = {};
 
-Log.debugMode = () => {
-    LOGGER_ENABLED = true;
-}
+Log.DEBUG_MODE = false;
 
 // info
 Log.i = (...things) => {
-    if (LOGGER_ENABLED) {
+    if (Log.DEBUG_MODE) {
         console.log(...things);
     }
 }
@@ -18,10 +24,21 @@ Log.e = (...things) => {
     console.error(...things);
 }
 
-if (typeof Complex === 'undefined') {
-    Log.e('Complex library not available');
+// Input function utilities.
+const Series = {}
+
+Series.parseSvg = () => {
+    // TODO
 }
 
-// Point is a vector in 2D space represented as a
-// complex number for easier manipulation.
-Point = Complex
+Series.getData = () => {
+    const y = 100;
+    const [x1, x2] = [-200, 200];
+
+    // IDEA: cache fourier frequencies between renders.
+    data = [];
+    for (let x = x1; x <= x2; x += 0.3) {
+        data.push(new Point(x, y));
+    }
+    return data;
+}

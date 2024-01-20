@@ -3,31 +3,13 @@ BLACK_COL = 0;
 GREY_COL = 150;
 DIM_GREY = 75;
 BG_COL = BLACK_COL;
-CANVAS_W = 1000
-CANVAS_H = 1000
-FRAME_RATE = 30 
-SLOWNESS_FAC = 10
+CANVAS_W = 1000;
+CANVAS_H = 1000;
+FRAME_RATE = 30;
+SLOWNESS_FAC = 10;
 
-CENTER_X = 300
-CENTER_Y = 250
-
-const Series = {}
-
-Series.parseSvg = () => {
-    // TODO
-}
-
-Series.getData = () => {
-    const y = 100;
-    const [x1, x2] = [-200, 200];
-
-    // IDEA: cache fourier frequencies between renders.
-    data = [];
-    for (let x = x1; x <= x2; x += 0.3) {
-        data.push(new Point(x, y));
-    }
-    return data;
-}
+CENTER_X = 300;
+CENTER_Y = 250;
 
 let series = Series.getData();
 let drawn = [];
@@ -44,15 +26,17 @@ new p5((p) => {
 
     advanceTime = () => {
         for (const f in frequencies) {
-            frequencies[f] = frequencies[f].mul(new Point({abs: 1, arg: f * angleIncFrac()}))
+            frequencies[f] = frequencies[f].mul(new Point({abs: 1, arg: f * angleIncFrac()}));
         }
     }
 
     p.setup = () => {
         p.frameRate(FRAME_RATE);
-        const can = p.createCanvas(CANVAS_W, CANVAS_H, document.getElementById("draw-area"));
+        const canvas = p.createCanvas(CANVAS_W, CANVAS_H, document.getElementById("draw-area"));
 
-        enableMouseDrawingInputs(can);
+        if (Log.DEBUG_MODE) {
+            enableMouseDrawingInputs(canvas);
+        }
     }
 
     enableMouseDrawingInputs = (canvas) => {

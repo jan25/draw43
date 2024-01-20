@@ -1,13 +1,14 @@
 // Original source: https://gist.github.com/anonymous/129d477ddb1c8025c9ac
 
+// Fourier series helpers.
 const Fourier = {};
 
 /**
- * 
  * @param {Array<Point>} data  list of points representing a time function in 2D.
- * @param {int} nFreq half number of sub frequency functions to split into.
+ * @param {int} nFreq number of sub frequency functions to split into.
+ *                    excluding constant frequency function.
  * 
- * @returns Starting positions for each sub function for each frequency.
+ * @returns Starting positions for each sub function at a frequency.
  */
 Fourier.Transform = (data, nFreq) => {
     Log.i('data:', data);
