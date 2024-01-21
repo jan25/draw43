@@ -7,6 +7,8 @@ CANVAS_W = 1000;
 CANVAS_H = 1000;
 FRAME_RATE = 30;
 SLOWNESS_FAC = 10;
+ZOOM_SCALE_FAC = 300;
+Z_KEY = 90;
 
 CENTER_X = 300;
 CENTER_Y = 250;
@@ -14,11 +16,68 @@ CENTER_Y = 250;
 let series = Series.getData();
 let drawn = [];
 let nextSeries = [];
-const halfNFreq = 20;
+const halfNFreq = 15;
 let frequencies = Fourier.Transform(series, 2 * halfNFreq);
 Log.i('post frequencies calc: ', frequencies);
+let zoomOn = false;
 
 new p5((p) => {
+
+
+    p.setup = () => {
+        p.frameRate(FRAME_RATE);
+        const canvas = p.createCanvas(CANVAS_W, CANVAS_H, document.getElementById("draw-area"));
+
+        if (Log.DEBUG_MODE) {
+            enableMouseDrawingInputs(canvas);
+        }
+    }
+
+    p.keyPressed = () => {
+        // toggle zoom.
+        if (p.keyCode == Z_KEY) {
+            zoomOn = !zoomOn;
+            Log.i(`zoom is ${zoomOn ? 'on' : 'off'}`);
+        }
+    }
+
+    p.draw = () => {
+        p.background(BG_COL);
+        p.translate(CENTER_X, CENTER_Y);
+
+        if (zoomOn) {
+            let [zoomX, zoomY] = [frequencies[0].re, frequencies[0].im];
+            for (let f = 1; f <= halfNFreq; f += 1) {
+                zoomX += frequencies[f].re + frequencies[-f].re;
+                zoomY += frequencies[f].im + frequencies[-f].re;
+            }
+            p.translate(zoomX, zoomY);
+            p.scale(ZOOM_SCALE_FAC / 100);
+            p.translate(CENTER_X, CENTER_Y);
+        }
+
+        drawSeries(series);
+        drawSeries(nextSeries);
+
+        const [centerX, centerY] = [0, 0];
+        center = new Point(centerX, centerY);
+
+        drawArrowAndEpicycleWithCenterVector(center, frequencies[0]);
+        center = center.add(frequencies[0]);
+
+        for (let f = 1; f <= halfNFreq; f += 1) {
+            drawArrowAndEpicycleWithCenterVector(center, frequencies[f]);
+            center = center.add(frequencies[f])
+
+            drawArrowAndEpicycleWithCenterVector(center, frequencies[-f]);
+            center = center.add(frequencies[-f])
+        }
+        // TODO prune
+        drawn.push(center);
+        drawDrawn();
+
+        advanceTime();
+    }
 
     angleIncFrac = () => {
         return 2 * Math.PI / (SLOWNESS_FAC * FRAME_RATE);
@@ -27,15 +86,6 @@ new p5((p) => {
     advanceTime = () => {
         for (const f in frequencies) {
             frequencies[f] = frequencies[f].mul(new Point({abs: 1, arg: f * angleIncFrac()}));
-        }
-    }
-
-    p.setup = () => {
-        p.frameRate(FRAME_RATE);
-        const canvas = p.createCanvas(CANVAS_W, CANVAS_H, document.getElementById("draw-area"));
-
-        if (Log.DEBUG_MODE) {
-            enableMouseDrawingInputs(canvas);
         }
     }
 
@@ -56,39 +106,6 @@ new p5((p) => {
         });
     }
 
-    p.draw = () => {
-        Log.i('frequencies before draw:', frequencies);
-
-        p.background(BG_COL);
-        p.translate(CENTER_X, CENTER_Y);
-
-        drawSampleSeries(series);
-        drawSampleSeries(nextSeries);
-
-        const [centerX, centerY] = [0, 0];
-        center = new Point(centerX, centerY);
-
-        drawArrowAndEpicycleWithCenterVector(center, frequencies[0]);
-        center = center.add(frequencies[0]);
-
-        for (let f = 1; f <= halfNFreq; f += 1) {
-            drawArrowAndEpicycleWithCenterVector(center, frequencies[f]);
-            center = center.add(frequencies[f])
-
-            drawArrowAndEpicycleWithCenterVector(center, frequencies[-f]);
-            center = center.add(frequencies[-f])
-        }
-        // TODO prune
-        drawn.push(center);
-        drawDrawn();
-
-        // mag = p.dist(0, 0, p.mouseX - 200, p.mouseY - 200);
-        // angle = p.atan2(p.mouseY - 200, p.mouseX - 200);
-        // drawArrowAndEpicycle(0, 0, mag, angle);
-
-        advanceTime();
-    }
-
     drawDrawn = () => {
         p.push()
 
@@ -103,10 +120,9 @@ new p5((p) => {
         p.pop()
     }
 
-    drawSampleSeries = (series) => {
+    drawSeries = (series) => {
         p.push()
 
-        Log.i('sample series:', series);
         if (series.length === 0) {
             Log.i('skip drawing empty series');
             return;

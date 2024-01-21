@@ -1,14 +1,16 @@
 # draw43
 
-Yet another 14feb project. This time i used a recent learning - Fourier series and usage in 2D curve drawing.
+Yet another 14 Feb project. This time it is 2D curve drawing with Fourier series.
 
-The input to the program is a svg file, which gets convered to Fourier series and gets fed to a drawing program. It then simulates functions from the series.
+The input to the program is a svg file, which gets transformed to Fourier series and gets fed to a drawing program. It then simulates functions from the series as epicycles.
 
 See demo at <TODO LINK>.
 
 ## Fourier series resources
 
-## How I used Blender
+<TODO>
+
+## Blender
 
 I used blender tool to draw outline curves which is input as svg to drawing program.
 

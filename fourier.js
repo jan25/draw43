@@ -16,7 +16,7 @@ Fourier.Transform = (data, nFreq) => {
     const frequencies = {};
 
     const [lowFreq, highFreq] = [-Math.round(nFreq / 2), nFreq - Math.round(nFreq / 2)]
-    Log.i('Using frequency range:', lowFreq, highFreq);
+    Log.i('using frequency range:', lowFreq, highFreq);
 
     // for every frequency...
     for (let freq = lowFreq; freq <= highFreq; freq++) {     
