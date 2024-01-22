@@ -29,3 +29,7 @@ How to export SVG?
 - Select bazier curve object on right panel
 - Right click on curve object and Convert > Glosy Pencil (dont remember exact name)
 - Select Glosy Pencil and File > Export > Glosy Pencil as SVG (again, check name)
+
+## Relevant topics
+
+Fourier transforms, Bazier curves, Affine transformation.

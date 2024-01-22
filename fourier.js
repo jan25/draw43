@@ -4,44 +4,52 @@
 const Fourier = {};
 
 /**
- * @param {Array<Point>} data  list of points representing a time function in 2D.
- * @param {int} nFreq number of sub frequency functions to split into.
+ * @param  data  list of points representing a time function in 2D.
+ * @param  nFreq number of sub frequency functions to split into.
  *                    excluding constant frequency function.
- * 
- * @returns Starting positions for each sub function at a frequency.
+ *
+ * @returns [drawEnd, frequencies] Drawing end point and starting positions
+ *                                      for each sub function at a frequency.
  */
 Fourier.Transform = (data, nFreq) => {
-    Log.i('data:', data);
-    const N = data.length;
-    const frequencies = {};
+  Log.i("data:", data);
+  const N = data.length;
+  const frequencies = {};
 
-    const [lowFreq, highFreq] = [-Math.round(nFreq / 2), nFreq - Math.round(nFreq / 2)]
-    Log.i('using frequency range:', lowFreq, highFreq);
+  const [lowFreq, highFreq] = [
+    -Math.round(nFreq / 2),
+    nFreq - Math.round(nFreq / 2),
+  ];
+  Log.i("using frequency range:", lowFreq, highFreq);
 
-    // for every frequency...
-    for (let freq = lowFreq; freq <= highFreq; freq++) {     
-        let point = new Point();
+  // drawing point
+  let drawEnd = new Point(0, 0);
 
-        // for every point in time...
-        for (let t = 0; t < N; t++) {
-            // Spin the signal _backwards_ at each frequency (as radians/s, not Hertz)
-            const rate = -1 * (2 * Math.PI) * freq;
+  // for every frequency...
+  for (let freq = lowFreq; freq <= highFreq; freq++) {
+    let point = new Point();
 
-            // How far around the circle have we gone at time=t?
-            const time = t / N;
-            const distance = rate * time;
+    // for every point in time...
+    for (let t = 0; t < N; t++) {
+      // Spin the signal _backwards_ at each frequency (as radians/s, not Hertz)
+      const rate = -1 * (2 * Math.PI) * freq;
 
-            // add this data point's contribution
-            point = point.add(
-                data[t].mul(new Point(Math.cos(distance), Math.sin(distance)))
-            );
-        }
+      // How far around the circle have we gone at time=t?
+      const time = t / N;
+      const distance = rate * time;
 
-        // Average contribution at this frequency
-        point = point.div(N);
-
-        frequencies[freq] = point;
+      // add this data point's contribution
+      point = point.add(
+        data[t].mul(new Point(Math.cos(distance), Math.sin(distance)))
+      );
     }
 
-    return frequencies;
-}
+    // Average contribution at this frequency
+    point = point.div(N);
+
+    drawEnd = drawEnd.add(point);
+    frequencies[freq] = point;
+  }
+
+  return [drawEnd, frequencies];
+};
