@@ -2,7 +2,6 @@
  * Helper script to convert SVG to 2D path of points.
  */
 import { readFileSync, writeFileSync } from "fs";
-import { join } from "path";
 import pkg from "xml-js";
 const { xml2js } = pkg;
 import _ from "lodash";
@@ -62,6 +61,8 @@ const parseSvg = (path, width, height) => {
     JSON.stringify(
       {
         polylines: scaled,
+        width,
+        height,
       },
       null,
       /*space*/ 2
@@ -74,4 +75,4 @@ const elems = (elementsArr, fn = (e) => e.type == "element") => {
   return _.filter(elementsArr, fn);
 };
 
-parseSvg("bazieroutline_staticcopy.svg", 800, 800);
+parseSvg("bazieroutline_staticcopy.svg", 1000, 1000);

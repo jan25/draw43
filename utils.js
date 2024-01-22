@@ -43,6 +43,64 @@ Series.getData = () => {
 };
 
 // Svg/Polyline utilities.
-const PolylinesConsumer = {};
+class PolylinesProvider {
+  constructor(polylines, baseW, baseH) {
+    this.polylines = polylines;
+    this.baseW = baseW;
+    this.baseH = baseH;
+  }
 
-PolylinesConsumer.store = (polylines) => {};
+  static from = async (jsonPath) => {
+    return await fetch(jsonPath)
+      .then((resp) => resp.json())
+      .then((json) => {
+        const { polylines, width, height } = json;
+        Log.i(`loaded ${polylines.length} polylines`);
+        const typedPolylines = [];
+        for (const pl of polylines) {
+          typedPolylines.push(Polyline.fromRawPoints(pl));
+        }
+        return new PolylinesProvider(typedPolylines, width, height);
+      });
+  };
+
+  scale = (targetW, targetH) => {
+    const scaled = [];
+    const scaleAmt = Math.min(targetH / this.baseH, targetW / this.baseW);
+    for (const pl of this.polylines) {
+      scaled.push(pl.scale(scaleAmt));
+    }
+    return new PolylinesProvider(scaled, targetW, targetH);
+  };
+}
+
+class Polyline {
+  constructor(points) {
+    this.points = points;
+  }
+
+  static fromRawPoints = (rawPoints) => {
+    const points = [];
+    for (const p of rawPoints) {
+      points.push(new Point(p.x, p.y));
+    }
+    return new Polyline(points);
+  };
+
+  scale = (factor) => {
+    const points = [];
+    for (const p of this.points) {
+      points.push(p.mul(factor));
+    }
+    return new Polyline(points);
+  };
+
+  translate = (x, y) => {
+    const t = new Point(x, y);
+    const points = [];
+    for (const p of this.points) {
+      points.push(p.add(t));
+    }
+    return new Polyline(points);
+  };
+}

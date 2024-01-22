@@ -7,6 +7,7 @@ const BG_COL = BLACK_COL;
 
 // dims and co-ords
 // TODO full screen
+// TODO Handle dimensions to avoid shear/distortion.
 const CANVAS_W = 800;
 const CANVAS_H = 800;
 const CENTER_X = CANVAS_W / 2;
@@ -15,13 +16,14 @@ const CENTER_Y = CANVAS_H / 2;
 // animation settings
 const FRAME_RATE = 30;
 const SLOWNESS_FAC = 50;
-const ZOOM_SCALE_FAC = 1000;
+const ZOOM_SCALE_FAC = 5000;
 
 // metadata
 const Z_KEY = 90;
+const H_KEY = 72;
 
 // inputs
-const HALF_N_FREQ = 10;
+const HALF_N_FREQ = 50; // 50;
 const SVG_JSON_PATH = "scripts/bazieroutline_staticcopy.svg-parsed.json";
 
 // state
@@ -30,18 +32,26 @@ let drawn = [];
 let nextSeries = [];
 let [drawEnd, frequencies] = Fourier.Transform(series, 2 * HALF_N_FREQ);
 let zoomOn = false;
+let mouseOn = false;
+let showOrigSeries = true;
 let currentScale = 1;
 
-let polylines;
+let polylinesProvider;
 
 new p5((p) => {
-  p.preload = () => {
-    fetch(SVG_JSON_PATH)
-      .then((resp) => resp.json())
-      .then((json) => {
-        const polylines = json.polylines;
-        Log.i(`loaded ${polylines.length} polylines`);
-      });
+  p.preload = async () => {
+    const plProvider = await PolylinesProvider.from(SVG_JSON_PATH);
+    polylinesProvider = plProvider.scale(CANVAS_W, CANVAS_H);
+
+    // for (const pl of polylinesProvider.polylines) {
+    //   series = [...series, ...pl.translate(-CENTER_X, -CENTER_Y).points];
+    // }
+    Log.i("total polylines: ", polylinesProvider.polylines.length);
+    series = polylinesProvider.polylines[7].translate(
+      -CENTER_X,
+      -CENTER_Y
+    ).points;
+    [drawEnd, frequencies] = Fourier.Transform(series, 2 * HALF_N_FREQ);
   };
 
   p.setup = () => {
@@ -52,7 +62,7 @@ new p5((p) => {
       document.getElementById("draw-area")
     );
 
-    if (Log.DEBUG_MODE) {
+    if (Log.DEBUG_MODE && mouseOn) {
       enableMouseDrawingInputs(canvas);
     }
   };
@@ -68,6 +78,11 @@ new p5((p) => {
         currentScale = 1;
       }
     }
+    // toggle original series.
+    if (p.keyCode == H_KEY) {
+      showOrigSeries = !showOrigSeries;
+      Log.i(`showOrigSeries is ${showOrigSeries ? "on" : "off"}`);
+    }
   };
 
   p.draw = () => {
@@ -78,14 +93,13 @@ new p5((p) => {
     p.translate(centerX, centerY);
     p.scale(currentScale);
 
-    if (zoomOn) {
-      // p.translate(drawEnd.re, drawEnd.im);
-      p.scale(ZOOM_SCALE_FAC / 100);
-      // p.translate(CENTER_X, CENTER_Y);
+    if (showOrigSeries) {
+      drawPolylines(CENTER_X, CENTER_Y);
     }
 
-    drawSeries(series);
-    drawSeries(nextSeries);
+    // TODO enable for mouse mode
+    // drawSeries(series);
+    // drawSeries(nextSeries);
 
     center = new Point(0, 0);
 
@@ -108,6 +122,15 @@ new p5((p) => {
     advanceTime();
   };
 
+  drawPolylines = (centerX, centerY) => {
+    p.push();
+    p.translate(-centerX, -centerY);
+    for (const pl of polylinesProvider.polylines) {
+      drawSeries(pl.points);
+    }
+    p.pop();
+  };
+
   // Affine transformation: scaled zoom at a specified centerX/Y.
   // Source: https://stackoverflow.com/a/70888506
   getScaledOrigin = (centerX, centerY) => {
@@ -117,8 +140,8 @@ new p5((p) => {
       y: centerY - CENTER_Y,
     };
 
-    currentScale = 1;
-    newScale = ZOOM_SCALE_FAC / 100;
+    const currentScale = 1;
+    const newScale = ZOOM_SCALE_FAC / 100;
 
     // determine the new origin
     let originShift = {
@@ -213,6 +236,8 @@ new p5((p) => {
     // TODO use adaptive headSize based on arrow length - make smaller arrow heads visible
     headSize = getArrowHeadSizeScaled(mag / 10);
     p.translate(mag - headSize, 0);
+    p.noStroke();
+    p.fill(WHITE_COL);
     triangleScaled(headSize);
 
     p.pop();
@@ -230,27 +255,25 @@ new p5((p) => {
 
   circleScaled = (x, y, radius) => {
     p.push();
-    p.strokeWeight(zoomOn ? 1 / (currentScale * 10) : 1);
+    p.strokeWeight(zoomOn ? 1 / currentScale : 1);
     p.circle(x, y, 2 * radius);
     p.pop();
   };
 
   lineScaled = (x1, y1, x2, y2) => {
     p.push();
-    p.strokeWeight(zoomOn ? 1 / (currentScale * 10) : 1);
+    p.strokeWeight(zoomOn ? 1 / currentScale : 1);
     p.line(x1, y1, x2, y2);
     p.pop();
   };
 
   triangleScaled = (headSize) => {
     p.push();
-    p.noStroke();
-    p.fill(WHITE_COL);
     p.triangle(0, headSize / 2, headSize, 0, 0, -headSize / 2);
     p.pop();
   };
 
   getArrowHeadSizeScaled = (headSize) => {
-    return zoomOn ? headSize / currentScale : headSize;
+    return headSize;
   };
 });
