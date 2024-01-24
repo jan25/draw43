@@ -1,4 +1,5 @@
 **/*.jpeg
+**/*.jpg
 **/*.svg
 **/*.png
 **/*.blend*
@@ -6,3 +7,6 @@
 **/package-lock.json
 **/*outline*.json
 **/node_modules
+**/asciiartchars.*
+
+.DS_Store

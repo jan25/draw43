@@ -5,11 +5,15 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "svgparser": "node svgparser.js"
+    "svgparser": "node svgparser.js",
+    "browserify": "browserify",
+    "uglify": "uglifyjs"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "browserify": "^17.0.0",
+    "uglify-js": "^3.17.4",
     "xml-js": "^1.6.11"
   }
 }
