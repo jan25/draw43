@@ -75,4 +75,4 @@ const elems = (elementsArr, fn = (e) => e.type == "element") => {
   return _.filter(elementsArr, fn);
 };
 
-parseSvg("bazieroutline_staticcopy.svg", 1000, 1000);
+parseSvg("scripts/bazieroutline_staticcopy.svg", 1000, 1000);

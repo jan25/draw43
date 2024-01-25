@@ -1,10 +1,10 @@
 # draw43
 
-Yet another 14 Feb project. This time it is 2D curve drawing with Fourier series.
+Yet another 14 Feb project. This time it is 2D line drawing with Fourier series.
 
 The input to the program is a svg file, which gets transformed to Fourier series and gets fed to a drawing program. It then simulates functions from the series as epicycles.
 
-See demo at <TODO LINK>.
+See demo at <TODO LINK> with debug param.
 
 ## Fourier series resources
 
@@ -22,7 +22,7 @@ How to draw bazier curves?
   - E key to continue drawing curves
   - Cmd + double scroll to zoom
   - Shift + double scroll to move across canvas
-  - Note: just double scroll messes up canvas in 3D
+  - Note: just double scroll messes up canvas axes in 3D
 
 How to export SVG?
 
@@ -32,4 +32,4 @@ How to export SVG?
 
 ## Relevant topics
 
-Fourier transforms, Bazier curves, Affine transformation.
+Fourier transforms, Bazier curves, Affine transformation, P5js, Blender
