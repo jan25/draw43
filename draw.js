@@ -15,16 +15,16 @@ const CENTER_Y = CANVAS_H / 2;
 
 // animation settings
 const FRAME_RATE = 30;
-const SLOWNESS_FAC = 50;
-const ZOOM_SCALE_FAC = 5000;
+const SLOWNESS_FAC = 200;
+const ZOOM_SCALE_FAC = 6000;
 
 // metadata
 const Z_KEY = 90;
 const H_KEY = 72;
 
 // inputs
-const HALF_N_FREQ = 50; // 50;
-const SVG_JSON_PATH = "scripts/bazieroutline_staticcopy.svg-parsed.json";
+const HALF_N_FREQ = 120; // 50;
+const SVG_JSON_PATH = "scripts/bazieroutline_cont.svg-parsed.json";
 
 // state
 let series = Series.getData();
@@ -47,10 +47,7 @@ new p5((p) => {
     //   series = [...series, ...pl.translate(-CENTER_X, -CENTER_Y).points];
     // }
     Log.i("total polylines: ", polylinesProvider.polylines.length);
-    series = polylinesProvider.polylines[7].translate(
-      -CENTER_X,
-      -CENTER_Y
-    ).points;
+    series = polylinesProvider.merge().translate(-CENTER_X, -CENTER_Y).points;
     [drawEnd, frequencies] = Fourier.Transform(series, 2 * HALF_N_FREQ);
   };
 

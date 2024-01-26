@@ -72,6 +72,14 @@ class PolylinesProvider {
     }
     return new PolylinesProvider(scaled, targetW, targetH);
   };
+
+  merge = () => {
+    let m = new Polyline([]);
+    for (const pl of this.polylines) {
+      m = m.merge(pl);
+    }
+    return m;
+  };
 }
 
 class Polyline {
@@ -102,5 +110,10 @@ class Polyline {
       points.push(p.add(t));
     }
     return new Polyline(points);
+  };
+
+  merge = (otherPl) => {
+    this.points = this.points.concat(otherPl.points);
+    return this;
   };
 }
