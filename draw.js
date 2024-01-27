@@ -21,10 +21,11 @@ const ZOOM_SCALE_FAC = 6000;
 // metadata
 const Z_KEY = 90;
 const H_KEY = 72;
+const S_KEY = 83;
 
 // inputs
 const HALF_N_FREQ = 120; // 50;
-const SVG_JSON_PATH = "scripts/bazieroutline_cont.svg-parsed.json";
+const SVG_JSON_PATH = "scripts/bazieroutline_800wx700h.svg-parsed.json";
 
 // state
 let series = Series.getData();
@@ -34,6 +35,7 @@ let [drawEnd, frequencies] = Fourier.Transform(series, 2 * HALF_N_FREQ);
 let zoomOn = false;
 let mouseOn = false;
 let showOrigSeries = true;
+let stopDrawing = false;
 let currentScale = 1;
 
 let polylinesProvider;
@@ -80,6 +82,11 @@ new p5((p) => {
       showOrigSeries = !showOrigSeries;
       Log.i(`showOrigSeries is ${showOrigSeries ? "on" : "off"}`);
     }
+    // toggle drawing animation.
+    if (p.keyCode == S_KEY) {
+      stopDrawing = !stopDrawing;
+      Log.i(`stopDrawing is ${stopDrawing ? "on" : "off"}`);
+    }
   };
 
   p.draw = () => {
@@ -98,6 +105,14 @@ new p5((p) => {
     // drawSeries(series);
     // drawSeries(nextSeries);
 
+    if (!stopDrawing) {
+      animateDrawing();
+    }
+
+    drawDrawn();
+  };
+
+  animateDrawing = () => {
     center = new Point(0, 0);
 
     drawArrowAndEpicycleWithCenterVector(center, frequencies[0]);
@@ -114,7 +129,6 @@ new p5((p) => {
     drawEnd = center;
     // TODO prune
     drawn.push(drawEnd);
-    drawDrawn();
 
     advanceTime();
   };
@@ -181,7 +195,7 @@ new p5((p) => {
   drawDrawn = () => {
     p.push();
 
-    p.stroke("red");
+    p.stroke(WHITE_COL);
     for (const i in drawn) {
       if (i == 0) continue;
       // TODO use p5 bazier curves

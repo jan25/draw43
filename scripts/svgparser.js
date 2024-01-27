@@ -34,7 +34,7 @@ const scalePolylinePoints = (polyline, targetW, targetH, srcW, srcH) => {
   return polyline;
 };
 
-const parseSvg = (path, width, height) => {
+const parseSvg = (path, width, height, mode = "polyline") => {
   const data = readFileSync(path, "utf8").toString();
   const xml = xml2js(data);
 
@@ -47,7 +47,7 @@ const parseSvg = (path, width, height) => {
   // recurse into nested <g> tags
   const polylines = elems(
     elems(elems(elems(svg.elements)[0].elements)[0].elements)[0].elements,
-    (e) => e.name == "polyline"
+    (e) => e.name == mode
   );
 
   const parsed = _.map(polylines, parsePolyline);
@@ -75,4 +75,4 @@ const elems = (elementsArr, fn = (e) => e.type == "element") => {
   return _.filter(elementsArr, fn);
 };
 
-parseSvg("scripts/bazieroutline_cont.svg", 1000, 1000);
+parseSvg("scripts/bazieroutline_800wx700h.svg", 800, 700, "polygon");
