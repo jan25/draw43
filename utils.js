@@ -112,4 +112,16 @@ class Polyline {
     this.points = this.points.concat(otherPl.points);
     return this;
   };
+
+  // compute center.
+  avg = () => {
+    let [reMin, reMax, imMin, imMax] = [100000, 0, 100000, 0];
+    for (const p of this.points) {
+      reMin = Math.min(reMin, p.re);
+      imMin = Math.min(imMin, p.im);
+      reMax = Math.max(reMax, p.re);
+      imMax = Math.max(imMax, p.im);
+    }
+    return new Point((reMin + reMax) / 2, (imMin, imMax) / 2);
+  };
 }

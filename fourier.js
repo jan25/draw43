@@ -52,6 +52,15 @@ Fourier.transform = (data, nFreq) => {
   return [drawEnd, frequencies];
 };
 
+// Translate series so origin is at center.
+Fourier.translate = (freqMap, center) => {
+  const moved = new Map();
+  for (const [f, p] of freqMap) {
+    moved.set(f, p.sub(center));
+  }
+  return moved;
+};
+
 // Deep clones freq->point map.
 Fourier.cloneFreqMap = (map) => {
   const c = new Map();

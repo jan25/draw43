@@ -6,22 +6,24 @@ const DIMGREY_COL = 50;
 const BG_COL = BLACK_COL;
 
 // dims and co-ords
-// TODO full screen
-const CANVAS_W = 800;
-const CANVAS_H = 800;
-const CENTER_X = CANVAS_W / 2;
-const CENTER_Y = CANVAS_H / 2;
+let CANVAS_H;
+let CANVAS_W;
+let CENTER_X;
+let CENTER_Y;
 
 // animation settings
 const FRAME_RATE = 30;
-const SLOWNESS_FAC = 200;
+const SLOWNESS_FAC = 175;
 const ZOOM_SCALE_FAC = 6000;
 
 // metadata
 const Z_KEY = 90;
 const H_KEY = 72;
 const S_KEY = 83;
-const CTRLS = "z: zoom\ns: stop";
+const DESKTOP_CTRLS = "press Z to zoom";
+// TODO add mobile tap controls
+const MOBILE_CTRLS = "tap to zoom";
+let IS_MOBILE = false;
 
 // inputs
 const HALF_N_FREQ = 125;
@@ -41,35 +43,10 @@ let currentScale = 1;
 let totalTicks;
 
 new p5((p) => {
-  p.preload = async () => {
-    const plProvider = await PolylinesProvider.from(SVG_JSON_PATH);
-    const polylinesProvider = plProvider.scale(CANVAS_W, CANVAS_H);
+  // load stuff before anything is drawn. runs once before setup().
+  p.preload = async () => {};
 
-    Log.i("total polylines: ", polylinesProvider.polylines.length);
-    series = polylinesProvider.merge().translate(-CENTER_X, -CENTER_Y).points;
-    Log.i("total points:", series.length);
-    [drawEnd, frequencies] = Fourier.transform(series, 2 * HALF_N_FREQ);
-    totalTicks = Fourier.countTicks(
-      Fourier.cloneFreqMap(frequencies),
-      angleIncFrac(),
-      HALF_N_FREQ
-    );
-    Log.i("total ticks:", totalTicks);
-  };
-
-  p.setup = () => {
-    p.frameRate(FRAME_RATE);
-    const canvas = p.createCanvas(
-      CANVAS_W,
-      CANVAS_H,
-      document.getElementById("draw-area")
-    );
-
-    if (Log.DEBUG_MODE && mouseOn) {
-      enableMouseDrawingInputs(canvas);
-    }
-  };
-
+  // setup event handlers
   p.keyPressed = () => {
     // toggle zoom.
     if (p.keyCode == Z_KEY) {
@@ -82,7 +59,7 @@ new p5((p) => {
       }
     }
     // toggle original series.
-    if (p.keyCode == H_KEY) {
+    if (p.keyCode == H_KEY && Log.DEBUG_MODE) {
       showOrigSeries = !showOrigSeries;
       Log.i(`showOrigSeries is ${showOrigSeries ? "on" : "off"}`);
     }
@@ -93,6 +70,47 @@ new p5((p) => {
     }
   };
 
+  // setup drawing area before drawing can begin. runs once.
+  p.setup = async () => {
+    const setupDims = () => {
+      IS_MOBILE = p.windowWidth < 600;
+      [CANVAS_H, CANVAS_W] = [p.windowHeight, p.windowWidth];
+      [CENTER_X, CENTER_Y] = [CANVAS_W / 2, CANVAS_H / 2];
+    };
+
+    const computeFourier = async () => {
+      // TODO Precompute and store fourier coeffs
+      const plProvider = await PolylinesProvider.from(SVG_JSON_PATH);
+      Log.i("total polylines", plProvider.polylines.length);
+      const pl = plProvider.merge();
+      const origin = pl.avg();
+      // TODO scale to fit on mobile screens
+      series = pl.translate(-origin.re, -origin.im).points;
+      Log.i("total points", series.length);
+      [drawEnd, frequencies] = Fourier.transform(series, 2 * HALF_N_FREQ);
+      totalTicks = Fourier.countTicks(
+        Fourier.cloneFreqMap(frequencies),
+        angleIncFrac(),
+        HALF_N_FREQ
+      );
+      Log.i("total ticks", totalTicks);
+    };
+
+    setupDims();
+    computeFourier();
+    p.frameRate(FRAME_RATE);
+    // Setup canvas
+    const canvas = p.createCanvas(
+      CANVAS_W,
+      CANVAS_H,
+      document.getElementById("draw-area")
+    );
+    if (Log.DEBUG_MODE && mouseOn) {
+      enableMouseDrawingInputs(canvas);
+    }
+  };
+
+  // drawing loop
   p.draw = () => {
     p.background(BG_COL);
     const [centerX, centerY] = zoomOn
@@ -126,25 +144,23 @@ new p5((p) => {
 
   showPctAndCtrls = (centerX, centerY) => {
     p.push();
-
     const pad = 5;
     const pct = Math.floor((drawn.length / totalTicks) * 100);
     p.textSize(12);
     p.textFont("Courier New");
-
     p.fill(WHITE_COL);
     p.strokeWeight(0.3);
-    p.textAlign(p.LEFT, p.BOTTOM);
+    p.textAlign(p.CENTER, p.BOTTOM);
     p.text(
-      `${pct}% complete\n------\n` + CTRLS,
-      -centerX + pad,
+      `${pct}% complete\n${IS_MOBILE ? MOBILE_CTRLS : DESKTOP_CTRLS}`,
+      0,
       CANVAS_H - centerY - pad
     );
     p.pop();
   };
 
   animateDrawing = () => {
-    center = new Point(0, 0);
+    let center = new Point(0, 0);
 
     drawArrowAndEpicycleWithCenterVector(center, frequencies.get(0));
     center = center.add(frequencies.get(0));
