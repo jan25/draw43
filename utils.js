@@ -26,11 +26,7 @@ Log.e = (...things) => {
 // Input time function utilities.
 const Series = {};
 
-Series.parseSvg = () => {
-  // TODO
-};
-
-Series.getData = () => {
+Series.getSampleData = () => {
   const y = 100;
   const [x1, x2] = [-200, 200];
 

@@ -7,7 +7,6 @@ const BG_COL = BLACK_COL;
 
 // dims and co-ords
 // TODO full screen
-// TODO Handle dimensions to avoid shear/distortion.
 const CANVAS_W = 800;
 const CANVAS_H = 800;
 const CENTER_X = CANVAS_W / 2;
@@ -24,33 +23,36 @@ const H_KEY = 72;
 const S_KEY = 83;
 
 // inputs
-const HALF_N_FREQ = 120; // 50;
+const HALF_N_FREQ = 125;
 const SVG_JSON_PATH = "scripts/bazieroutline_800wx700h.svg-parsed.json";
 
 // state
-let series = Series.getData();
+let series = Series.getSampleData();
 let drawn = [];
 let nextSeries = [];
-let [drawEnd, frequencies] = Fourier.Transform(series, 2 * HALF_N_FREQ);
+let [drawEnd, frequencies] = Fourier.transform(series, 2 * HALF_N_FREQ);
 let zoomOn = false;
 let mouseOn = false;
-let showOrigSeries = true;
+let showOrigSeries = false;
 let stopDrawing = false;
 let currentScale = 1;
-
-let polylinesProvider;
+let totalTicks;
 
 new p5((p) => {
   p.preload = async () => {
     const plProvider = await PolylinesProvider.from(SVG_JSON_PATH);
-    polylinesProvider = plProvider.scale(CANVAS_W, CANVAS_H);
+    const polylinesProvider = plProvider.scale(CANVAS_W, CANVAS_H);
 
-    // for (const pl of polylinesProvider.polylines) {
-    //   series = [...series, ...pl.translate(-CENTER_X, -CENTER_Y).points];
-    // }
     Log.i("total polylines: ", polylinesProvider.polylines.length);
     series = polylinesProvider.merge().translate(-CENTER_X, -CENTER_Y).points;
-    [drawEnd, frequencies] = Fourier.Transform(series, 2 * HALF_N_FREQ);
+    Log.i("total points:", series.length);
+    [drawEnd, frequencies] = Fourier.transform(series, 2 * HALF_N_FREQ);
+    totalTicks = Fourier.countTicks(
+      Fourier.cloneFreqMap(frequencies),
+      angleIncFrac(),
+      HALF_N_FREQ
+    );
+    Log.i("total ticks:", totalTicks);
   };
 
   p.setup = () => {
@@ -98,15 +100,18 @@ new p5((p) => {
     p.scale(currentScale);
 
     if (showOrigSeries) {
-      drawPolylines(CENTER_X, CENTER_Y);
+      drawSeries(series);
     }
 
     // TODO enable for mouse mode
-    // drawSeries(series);
     // drawSeries(nextSeries);
 
     if (!stopDrawing) {
       animateDrawing();
+      if (drawn.length > totalTicks) {
+        stopDrawing = true;
+        Log.i("Finished all ticks, stopped drawing.");
+      }
     }
 
     drawDrawn();
@@ -115,31 +120,22 @@ new p5((p) => {
   animateDrawing = () => {
     center = new Point(0, 0);
 
-    drawArrowAndEpicycleWithCenterVector(center, frequencies[0]);
-    center = center.add(frequencies[0]);
+    drawArrowAndEpicycleWithCenterVector(center, frequencies.get(0));
+    center = center.add(frequencies.get(0));
 
     // Why alternate freqs? Can these be ordered by magnitude?
     for (let f = 1; f <= HALF_N_FREQ; f += 1) {
-      drawArrowAndEpicycleWithCenterVector(center, frequencies[f]);
-      center = center.add(frequencies[f]);
+      drawArrowAndEpicycleWithCenterVector(center, frequencies.get(f));
+      center = center.add(frequencies.get(f));
 
-      drawArrowAndEpicycleWithCenterVector(center, frequencies[-f]);
-      center = center.add(frequencies[-f]);
+      drawArrowAndEpicycleWithCenterVector(center, frequencies.get(-f));
+      center = center.add(frequencies.get(-f));
     }
     drawEnd = center;
     // TODO prune
     drawn.push(drawEnd);
 
     advanceTime();
-  };
-
-  drawPolylines = (centerX, centerY) => {
-    p.push();
-    p.translate(-centerX, -centerY);
-    for (const pl of polylinesProvider.polylines) {
-      drawSeries(pl.points);
-    }
-    p.pop();
   };
 
   // Affine transformation: scaled zoom at a specified centerX/Y.
@@ -168,12 +164,12 @@ new p5((p) => {
   };
 
   advanceTime = () => {
-    for (const f in frequencies) {
-      frequencies[f] = frequencies[f].mul(
-        new Point({ abs: 1, arg: f * angleIncFrac() })
-      );
+    for (const [f, p] of frequencies) {
+      frequencies.set(f, p.mul(new Point({ abs: 1, arg: f * angleIncFrac() })));
     }
   };
+
+  ticksToCompletion = () => {};
 
   enableMouseDrawingInputs = (canvas) => {
     canvas.mousePressed(() => {
@@ -188,7 +184,7 @@ new p5((p) => {
       series = nextSeries;
       nextSeries = [];
       drawn = [];
-      [drawEnd, frequencies] = Fourier.Transform(series, 2 * HALF_N_FREQ);
+      [drawEnd, frequencies] = Fourier.transform(series, 2 * HALF_N_FREQ);
     });
   };
 
@@ -205,7 +201,7 @@ new p5((p) => {
     p.pop();
   };
 
-  drawSeries = (series) => {
+  drawSeries = (series, centerX, centerY) => {
     p.push();
 
     if (series.length === 0) {
@@ -213,6 +209,7 @@ new p5((p) => {
       return;
     }
 
+    p.translate(-centerX, -centerY);
     p.stroke(WHITE_COL);
     for (let i = 1; i < series.length; i++) {
       const [start, end] = [series[i - 1], series[i]];
@@ -244,7 +241,6 @@ new p5((p) => {
     lineScaled(0, 0, mag, 0);
 
     // TODO use applyMatrix to rotate and translate
-    // TODO use adaptive headSize based on arrow length - make smaller arrow heads visible
     headSize = getArrowHeadSizeScaled(mag / 10);
     p.translate(mag - headSize, 0);
     p.noStroke();
@@ -285,6 +281,7 @@ new p5((p) => {
   };
 
   getArrowHeadSizeScaled = (headSize) => {
+    // TODO adaptive head size based on arrow length
     return headSize;
   };
 });
