@@ -21,6 +21,7 @@ const ZOOM_SCALE_FAC = 6000;
 const Z_KEY = 90;
 const H_KEY = 72;
 const S_KEY = 83;
+const CTRLS = "z: zoom\ns: stop";
 
 // inputs
 const HALF_N_FREQ = 125;
@@ -35,6 +36,7 @@ let zoomOn = false;
 let mouseOn = false;
 let showOrigSeries = false;
 let stopDrawing = false;
+let drawingDone = false;
 let currentScale = 1;
 let totalTicks;
 
@@ -96,6 +98,8 @@ new p5((p) => {
     const [centerX, centerY] = zoomOn
       ? getScaledOrigin(drawEnd.re + CENTER_X, drawEnd.im + CENTER_Y)
       : [CENTER_X, CENTER_Y];
+    // TODO fix messy translates which are confusing all over. Make
+    // all rendering functions pure using centerX/Y args.
     p.translate(centerX, centerY);
     p.scale(currentScale);
 
@@ -106,15 +110,37 @@ new p5((p) => {
     // TODO enable for mouse mode
     // drawSeries(nextSeries);
 
-    if (!stopDrawing) {
-      animateDrawing();
+    if (!drawingDone) {
+      if (!stopDrawing) {
+        animateDrawing();
+      }
+      showPctAndCtrls(centerX, centerY);
       if (drawn.length > totalTicks) {
-        stopDrawing = true;
+        drawingDone = true;
         Log.i("Finished all ticks, stopped drawing.");
       }
     }
 
     drawDrawn();
+  };
+
+  showPctAndCtrls = (centerX, centerY) => {
+    p.push();
+
+    const pad = 5;
+    const pct = Math.floor((drawn.length / totalTicks) * 100);
+    p.textSize(12);
+    p.textFont("Courier New");
+
+    p.fill(WHITE_COL);
+    p.strokeWeight(0.3);
+    p.textAlign(p.LEFT, p.BOTTOM);
+    p.text(
+      `${pct}% complete\n------\n` + CTRLS,
+      -centerX + pad,
+      CANVAS_H - centerY - pad
+    );
+    p.pop();
   };
 
   animateDrawing = () => {
