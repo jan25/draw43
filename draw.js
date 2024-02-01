@@ -29,14 +29,15 @@ const MOBILE_CTRLS = "tap to zoom";
 let IS_MOBILE = false;
 
 // inputs
-const HALF_N_FREQ = 125;
+let HALF_N_FREQ = 10;
 const SVG_JSON_PATH = "scripts/bazieroutline_800wx700h.svg-parsed.json";
 
 // state
-let series = Series.getSampleData();
+let series;
 let drawn = [];
 let nextSeries = [];
-let [drawEnd, frequencies] = Fourier.transform(series, 2 * HALF_N_FREQ);
+let drawEnd;
+let frequencies;
 let zoomOn = false;
 let mouseOn = false;
 let showOrigSeries = false;
@@ -56,13 +57,7 @@ export default new p5((p) => {
   p.keyPressed = () => {
     // toggle zoom.
     if (p.keyCode == Z_KEY) {
-      zoomOn = !zoomOn;
-      Log.i(`zoom is ${zoomOn ? "on" : "off"}`);
-      if (zoomOn) {
-        currentScale = ZOOM_SCALE_FAC / 100;
-      } else {
-        currentScale = 1;
-      }
+      h.toggleZoom();
     }
     // toggle original series.
     if (p.keyCode == H_KEY && Log.DEBUG_MODE) {
@@ -87,13 +82,16 @@ export default new p5((p) => {
     const computeFourier = async () => {
       // TODO Precompute and store fourier coeffs
       const plProvider = await PolylinesProvider.from(SVG_JSON_PATH);
-      Log.i("total polylines", plProvider.polylines.length);
       const pl = plProvider.merge();
       const origin = pl.avg();
       // TODO scale to fit on mobile screens
       series = pl.translate(-origin.re, -origin.im).points;
       Log.i("total points", series.length);
-      [drawEnd, frequencies] = Fourier.transform(series, 2 * HALF_N_FREQ);
+      const json = Fourier.transformAndEncode(series, 2 * 125);
+      [HALF_N_FREQ, frequencies] = Fourier.decode(
+        JSON.parse(JSON.stringify(json))
+      );
+      drawEnd = Fourier.initialEnd(frequencies);
       totalTicks = Fourier.countTicks(
         Fourier.cloneFreqMap(frequencies),
         h.angleIncFrac(),
@@ -103,7 +101,7 @@ export default new p5((p) => {
     };
 
     setupDims();
-    computeFourier();
+    await computeFourier();
     p.frameRate(FRAME_RATE);
     // Setup canvas
     const canvas = p.createCanvas(
@@ -114,6 +112,9 @@ export default new p5((p) => {
     if (Log.DEBUG_MODE && mouseOn) {
       h.enableMouseDrawingInputs(canvas);
     }
+
+    // turn on as default
+    // h.toggleZoom();
   };
 
   // drawing loop
@@ -122,6 +123,7 @@ export default new p5((p) => {
     const [centerX, centerY] = zoomOn
       ? h.getScaledOrigin(drawEnd.re + CENTER_X, drawEnd.im + CENTER_Y)
       : [CENTER_X, CENTER_Y];
+
     // TODO fix messy translates which are confusing all over. Make
     // all rendering functions pure using centerX/Y args.
     p.translate(centerX, centerY);
@@ -146,6 +148,16 @@ export default new p5((p) => {
     }
 
     h.drawDrawn();
+  };
+
+  h.toggleZoom = () => {
+    zoomOn = !zoomOn;
+    Log.i(`zoom is ${zoomOn ? "on" : "off"}`);
+    if (zoomOn) {
+      currentScale = ZOOM_SCALE_FAC / 100;
+    } else {
+      currentScale = 1;
+    }
   };
 
   h.showPctAndCtrls = (centerX, centerY) => {

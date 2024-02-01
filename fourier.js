@@ -8,8 +8,7 @@ const Fourier = {};
  * @param  data  list of points representing a time function in 2D.
  * @param  nFreq number of sub frequency functions to split into.
  *                    excluding constant frequency function.
- * @returns [drawEnd, frequencies] Drawing end point and starting positions
- *                                      for each sub function at a frequency.
+ * @returns frequencies Starting positions for each sub function at a frequency.
  */
 Fourier.transform = (data, nFreq) => {
   const N = data.length;
@@ -20,9 +19,6 @@ Fourier.transform = (data, nFreq) => {
     nFreq - Math.round(nFreq / 2),
   ];
   Log.i("Fourier using frequency range:", lowFreq, highFreq);
-
-  // drawing point
-  let drawEnd = new Point(0, 0);
 
   // for every frequency...
   for (let freq = lowFreq; freq <= highFreq; freq++) {
@@ -46,20 +42,19 @@ Fourier.transform = (data, nFreq) => {
     // Average contribution at this frequency
     point = point.div(N);
 
-    drawEnd = drawEnd.add(point);
     frequencies.set(freq, point);
   }
 
-  return [drawEnd, frequencies];
+  return frequencies;
 };
 
-// Translate series so origin is at center.
-Fourier.translate = (freqMap, center) => {
-  const moved = new Map();
-  for (const [f, p] of freqMap) {
-    moved.set(f, p.sub(center));
+// Initial position of all vectors summed.
+Fourier.initialEnd = (frequencies) => {
+  let end = new Point(0, 0);
+  for (const [_, p] of frequencies) {
+    end = end.add(p);
   }
-  return moved;
+  return end;
 };
 
 // Deep clones freq->point map.
@@ -111,6 +106,29 @@ Fourier.countTicks = (frequencies, angleInc, halfFreqN) => {
     ticks++;
   }
   return ticks;
+};
+
+// transforms and encodes fourier as JSON
+Fourier.transformAndEncode = (series, nFreq) => {
+  const frequencies = Fourier.transform(series, nFreq);
+  for (const [f, p] of frequencies) {
+    frequencies.set(f, [p.re, p.im]);
+  }
+  const json = {
+    halfNFreq: Math.round(nFreq / 2),
+    frequencies: Object.fromEntries(frequencies),
+  };
+  return json;
+};
+
+// decodes fourier from JSON
+Fourier.decode = (json) => {
+  const { halfNFreq, frequencies } = json;
+  const frequenciesMap = new Map();
+  for (const [f, p] of new Map(Object.entries(frequencies))) {
+    frequenciesMap.set(parseInt(f), new Point(p[0], p[1]));
+  }
+  return [halfNFreq, frequenciesMap];
 };
 
 export { Fourier };
