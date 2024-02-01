@@ -1,3 +1,4 @@
+import { Log, Point } from "./utils.js";
 // Original source: https://gist.github.com/anonymous/129d477ddb1c8025c9ac
 
 // Fourier series helpers.
@@ -111,3 +112,5 @@ Fourier.countTicks = (frequencies, angleInc, halfFreqN) => {
   }
   return ticks;
 };
+
+export { Fourier };

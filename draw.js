@@ -1,3 +1,6 @@
+import { Series, PolylinesProvider, Log, Point } from "./utils.js";
+import { Fourier } from "./fourier.js";
+
 // colors
 const WHITE_COL = 255;
 const BLACK_COL = 0;
@@ -42,7 +45,10 @@ let drawingDone = false;
 let currentScale = 1;
 let totalTicks;
 
-new p5((p) => {
+export default new p5((p) => {
+  // helpers
+  const h = {};
+
   // load stuff before anything is drawn. runs once before setup().
   p.preload = async () => {};
 
@@ -90,7 +96,7 @@ new p5((p) => {
       [drawEnd, frequencies] = Fourier.transform(series, 2 * HALF_N_FREQ);
       totalTicks = Fourier.countTicks(
         Fourier.cloneFreqMap(frequencies),
-        angleIncFrac(),
+        h.angleIncFrac(),
         HALF_N_FREQ
       );
       Log.i("total ticks", totalTicks);
@@ -106,7 +112,7 @@ new p5((p) => {
       document.getElementById("draw-area")
     );
     if (Log.DEBUG_MODE && mouseOn) {
-      enableMouseDrawingInputs(canvas);
+      h.enableMouseDrawingInputs(canvas);
     }
   };
 
@@ -114,7 +120,7 @@ new p5((p) => {
   p.draw = () => {
     p.background(BG_COL);
     const [centerX, centerY] = zoomOn
-      ? getScaledOrigin(drawEnd.re + CENTER_X, drawEnd.im + CENTER_Y)
+      ? h.getScaledOrigin(drawEnd.re + CENTER_X, drawEnd.im + CENTER_Y)
       : [CENTER_X, CENTER_Y];
     // TODO fix messy translates which are confusing all over. Make
     // all rendering functions pure using centerX/Y args.
@@ -122,27 +128,27 @@ new p5((p) => {
     p.scale(currentScale);
 
     if (showOrigSeries) {
-      drawSeries(series);
+      h.drawSeries(series);
     }
 
     // TODO enable for mouse mode
-    // drawSeries(nextSeries);
+    // h.drawSeries(nextSeries);
 
     if (!drawingDone) {
       if (!stopDrawing) {
-        animateDrawing();
+        h.animateDrawing();
       }
-      showPctAndCtrls(centerX, centerY);
+      h.showPctAndCtrls(centerX, centerY);
       if (drawn.length > totalTicks) {
         drawingDone = true;
         Log.i("Finished all ticks, stopped drawing.");
       }
     }
 
-    drawDrawn();
+    h.drawDrawn();
   };
 
-  showPctAndCtrls = (centerX, centerY) => {
+  h.showPctAndCtrls = (centerX, centerY) => {
     p.push();
     const pad = 5;
     const pct = Math.floor((drawn.length / totalTicks) * 100);
@@ -159,30 +165,30 @@ new p5((p) => {
     p.pop();
   };
 
-  animateDrawing = () => {
+  h.animateDrawing = () => {
     let center = new Point(0, 0);
 
-    drawArrowAndEpicycleWithCenterVector(center, frequencies.get(0));
+    h.drawArrowAndEpicycleWithCenterVector(center, frequencies.get(0));
     center = center.add(frequencies.get(0));
 
     // Why alternate freqs? Can these be ordered by magnitude?
     for (let f = 1; f <= HALF_N_FREQ; f += 1) {
-      drawArrowAndEpicycleWithCenterVector(center, frequencies.get(f));
+      h.drawArrowAndEpicycleWithCenterVector(center, frequencies.get(f));
       center = center.add(frequencies.get(f));
 
-      drawArrowAndEpicycleWithCenterVector(center, frequencies.get(-f));
+      h.drawArrowAndEpicycleWithCenterVector(center, frequencies.get(-f));
       center = center.add(frequencies.get(-f));
     }
     drawEnd = center;
     // TODO prune
     drawn.push(drawEnd);
 
-    advanceTime();
+    h.advanceTime();
   };
 
   // Affine transformation: scaled zoom at a specified centerX/Y.
   // Source: https://stackoverflow.com/a/70888506
-  getScaledOrigin = (centerX, centerY) => {
+  h.getScaledOrigin = (centerX, centerY) => {
     // the center position relative to the scaled/shifted scene
     let viewCenterPos = {
       x: centerX - CENTER_X,
@@ -201,19 +207,20 @@ new p5((p) => {
     return [CENTER_X - originShift.x, CENTER_Y - originShift.y];
   };
 
-  angleIncFrac = () => {
+  h.angleIncFrac = () => {
     return (2 * Math.PI) / (SLOWNESS_FAC * FRAME_RATE);
   };
 
-  advanceTime = () => {
+  h.advanceTime = () => {
     for (const [f, p] of frequencies) {
-      frequencies.set(f, p.mul(new Point({ abs: 1, arg: f * angleIncFrac() })));
+      frequencies.set(
+        f,
+        p.mul(new Point({ abs: 1, arg: f * h.angleIncFrac() }))
+      );
     }
   };
 
-  ticksToCompletion = () => {};
-
-  enableMouseDrawingInputs = (canvas) => {
+  h.enableMouseDrawingInputs = (canvas) => {
     canvas.mousePressed(() => {
       nextSeries = [];
     });
@@ -230,20 +237,20 @@ new p5((p) => {
     });
   };
 
-  drawDrawn = () => {
+  h.drawDrawn = () => {
     p.push();
 
     p.stroke(WHITE_COL);
     for (const i in drawn) {
       if (i == 0) continue;
       // TODO use p5 bazier curves
-      lineScaled(drawn[i - 1].re, drawn[i - 1].im, drawn[i].re, drawn[i].im);
+      h.lineScaled(drawn[i - 1].re, drawn[i - 1].im, drawn[i].re, drawn[i].im);
     }
 
     p.pop();
   };
 
-  drawSeries = (series, centerX, centerY) => {
+  h.drawSeries = (series, centerX, centerY) => {
     p.push();
 
     if (series.length === 0) {
@@ -255,74 +262,74 @@ new p5((p) => {
     p.stroke(WHITE_COL);
     for (let i = 1; i < series.length; i++) {
       const [start, end] = [series[i - 1], series[i]];
-      lineScaled(start.re, start.im, end.re, end.im);
+      h.lineScaled(start.re, start.im, end.re, end.im);
     }
 
     p.pop();
   };
 
-  drawArrowAndEpicycleWithCenterVector = (center, vec) => {
-    drawArrowAndEpicycle(center.re, center.im, vec.abs(), vec.arg());
+  h.drawArrowAndEpicycleWithCenterVector = (center, vec) => {
+    h.drawArrowAndEpicycle(center.re, center.im, vec.abs(), vec.arg());
   };
 
-  drawArrowAndEpicycle = (x, y, mag, angle) => {
+  h.drawArrowAndEpicycle = (x, y, mag, angle) => {
     p.push();
 
-    drawArrow(x, y, mag, angle);
-    drawEpicycle(x, y, mag);
+    h.drawArrow(x, y, mag, angle);
+    h.drawEpicycle(x, y, mag);
 
     p.pop();
   };
 
-  drawArrow = (x, y, mag, angle) => {
+  h.drawArrow = (x, y, mag, angle) => {
     p.push();
 
     p.stroke(WHITE_COL);
     p.translate(x, y);
     p.rotate(angle);
-    lineScaled(0, 0, mag, 0);
+    h.lineScaled(0, 0, mag, 0);
 
     // TODO use applyMatrix to rotate and translate
-    headSize = getArrowHeadSizeScaled(mag / 10);
+    const headSize = h.getArrowHeadSizeScaled(mag / 10);
     p.translate(mag - headSize, 0);
     p.noStroke();
     p.fill(WHITE_COL);
-    triangleScaled(headSize);
+    h.triangleScaled(headSize);
 
     p.pop();
   };
 
-  drawEpicycle = (x, y, radius) => {
+  h.drawEpicycle = (x, y, radius) => {
     p.push();
 
     p.noFill();
     p.stroke(DIMGREY_COL);
-    circleScaled(x, y, radius);
+    h.circleScaled(x, y, radius);
 
     p.pop();
   };
 
-  circleScaled = (x, y, radius) => {
+  h.circleScaled = (x, y, radius) => {
     p.push();
     p.strokeWeight(zoomOn ? 1 / currentScale : 1);
     p.circle(x, y, 2 * radius);
     p.pop();
   };
 
-  lineScaled = (x1, y1, x2, y2) => {
+  h.lineScaled = (x1, y1, x2, y2) => {
     p.push();
     p.strokeWeight(zoomOn ? 1 / currentScale : 1);
     p.line(x1, y1, x2, y2);
     p.pop();
   };
 
-  triangleScaled = (headSize) => {
+  h.triangleScaled = (headSize) => {
     p.push();
     p.triangle(0, headSize / 2, headSize, 0, 0, -headSize / 2);
     p.pop();
   };
 
-  getArrowHeadSizeScaled = (headSize) => {
+  h.getArrowHeadSizeScaled = (headSize) => {
     // TODO adaptive head size based on arrow length
     return headSize;
   };

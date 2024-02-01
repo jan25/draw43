@@ -17,14 +17,13 @@
       }
     </style>
     <script src="./lib/p5.min.js"></script>
-    <script src="./lib/complex.min.js"></script>
-    <script src="./utils.js"></script>
-    <script>
+    <script type="module">
+      import { Log } from "./utils.js";
+      import "./draw.js";
+
       Log.DEBUG_MODE = true;
       Log.i("Testing logger: Debug mode enabled");
     </script>
-    <script src="./fourier.js"></script>
-    <script src="./draw.js"></script>
   </head>
   <body>
     <canvas id="draw-area" />

@@ -1,10 +1,4 @@
-if (typeof Complex === "undefined") {
-  Log.e("Complex library not available");
-}
-
-// Point is a vector in 2D space represented as a
-// complex number for easier manipulation.
-const Point = Complex;
+import { default as Complex } from "./lib/complex.min.js";
 
 // Logger utilities.
 const Log = {};
@@ -23,6 +17,10 @@ Log.e = (...things) => {
   console.error(...things);
 };
 
+// Point is a vector in 2D space represented as a
+// complex number for easier manipulation.
+const Point = Complex;
+
 // Input time function utilities.
 const Series = {};
 
@@ -31,7 +29,7 @@ Series.getSampleData = () => {
   const [x1, x2] = [-200, 200];
 
   // IDEA: cache fourier frequencies between renders.
-  data = [];
+  const data = [];
   for (let x = x1; x <= x2; x += 0.3) {
     data.push(new Point(x, y));
   }
@@ -125,3 +123,5 @@ class Polyline {
     return new Point((reMin + reMax) / 2, (imMin, imMax) / 2);
   };
 }
+
+export { Point, Log, PolylinesProvider, Polyline, Series };
