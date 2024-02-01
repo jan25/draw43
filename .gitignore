@@ -9,4 +9,5 @@
 **/node_modules
 **/asciiartchars.*
 
+**/*.trash
 .DS_Store

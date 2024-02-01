@@ -8,10 +8,17 @@ See a rose being drawn here: <TODO LINK> with debug param.
 
 ## Fourier
 
-Complex Fourier series: any function can be expressed as sum of sine and cosine functions, and as number of such functions approach ∞, the sum approaches original function. "Complex" because all this can be achived with complex vectors rotating in complex plane each with some frequency.
+Complex Fourier series: any function can be expressed as sum of sine and cosine functions, and as number of such functions approach ∞, the sum approaches original function. "Complex" because all this can be achieved with complex vectors rotating in complex plane each with some frequency.
 
 Motivation: [What is fourier series? (YouTube)](https://www.youtube.com/watch?app=desktop&v=r6sGWTCMz2k)
 
 ## Relevant topics
 
 Fourier transforms, Bazier curves, Affine transformation, P5js, Blender
+
+## TODO
+
+- Script to convert svg->fourier->encode
+- Mobile support - dimensions and event handlers
+- Background color (make lighter, see for e.g. raw image in browser)
+- Draw rose or photo based on image url
