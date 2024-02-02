@@ -18,7 +18,8 @@ Fourier transforms, Bazier curves, Affine transformation, P5js, Blender
 
 ## TODO
 
-- Script to convert svg->fourier->encode
-- Mobile support - dimensions and event handlers
 - Background color (make lighter, see for e.g. raw image in browser)
-- Draw rose or photo based on image url
+- Add Rose line diagram and switch using URL mode param
+- Mobile support - dimensions and event handlers
+- Add restart drawing option during/on finish
+- Show % complete on zoom

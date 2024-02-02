@@ -1,4 +1,5 @@
 import { default as Complex } from "./lib/complex.min.js";
+import { default as aesjs } from "./lib/aes.js";
 
 // Logger utilities.
 const Log = {};
@@ -20,61 +21,6 @@ Log.e = (...things) => {
 // Point is a vector in 2D space represented as a
 // complex number for easier manipulation.
 const Point = Complex;
-
-// Input time function utilities.
-const Series = {};
-
-Series.getSampleData = () => {
-  const y = 100;
-  const [x1, x2] = [-200, 200];
-
-  // IDEA: cache fourier frequencies between renders.
-  const data = [];
-  for (let x = x1; x <= x2; x += 0.3) {
-    data.push(new Point(x, y));
-  }
-  return data;
-};
-
-// Svg/Polyline utilities.
-class PolylinesProvider {
-  constructor(polylines, baseW, baseH) {
-    this.polylines = polylines;
-    this.baseW = baseW;
-    this.baseH = baseH;
-  }
-
-  static from = async (jsonPath) => {
-    return await fetch(jsonPath)
-      .then((resp) => resp.json())
-      .then((json) => {
-        const { polylines, width, height } = json;
-        Log.i(`loaded ${polylines.length} polylines`);
-        const typedPolylines = [];
-        for (const pl of polylines) {
-          typedPolylines.push(Polyline.fromRawPoints(pl));
-        }
-        return new PolylinesProvider(typedPolylines, width, height);
-      });
-  };
-
-  scale = (targetW, targetH) => {
-    const scaled = [];
-    const scaleAmt = Math.min(targetH / this.baseH, targetW / this.baseW);
-    for (const pl of this.polylines) {
-      scaled.push(pl.scale(scaleAmt));
-    }
-    return new PolylinesProvider(scaled, targetW, targetH);
-  };
-
-  merge = () => {
-    let m = new Polyline([]);
-    for (const pl of this.polylines) {
-      m = m.merge(pl);
-    }
-    return m;
-  };
-}
 
 class Polyline {
   constructor(points) {
@@ -106,11 +52,6 @@ class Polyline {
     return new Polyline(points);
   };
 
-  merge = (otherPl) => {
-    this.points = this.points.concat(otherPl.points);
-    return this;
-  };
-
   // compute center.
   avg = () => {
     let [reMin, reMax, imMin, imMax] = [100000, 0, 100000, 0];
@@ -124,4 +65,35 @@ class Polyline {
   };
 }
 
-export { Point, Log, PolylinesProvider, Polyline, Series };
+class Locker {
+  static lock = (dataStr, key) => {
+    const keyArr = new TextEncoder().encode(key);
+    var textBytes = aesjs.utils.utf8.toBytes(dataStr);
+    const cnt = keyArr.reduce((a, b) => a + b, 0);
+    var aesCtr = new aesjs.ModeOfOperation.ctr(keyArr, new aesjs.Counter(cnt));
+    var encryptedBytes = aesCtr.encrypt(textBytes);
+    return aesjs.utils.hex.fromBytes(encryptedBytes);
+  };
+
+  static unlock = (garbage, key) => {
+    const keyArr = new TextEncoder().encode(key);
+    const cnt = keyArr.reduce((a, b) => a + b, 0);
+    const bytes = aesjs.utils.hex.toBytes(garbage);
+    const aesCtr = new aesjs.ModeOfOperation.ctr(
+      keyArr,
+      new aesjs.Counter(cnt)
+    );
+    const decryptedBytes = aesCtr.decrypt(bytes);
+    return aesjs.utils.utf8.fromBytes(decryptedBytes);
+  };
+
+  static mk = (key) => {
+    let small = "";
+    while (small.length < 16) {
+      small += key;
+    }
+    return small.slice(0, 16);
+  };
+}
+
+export { Point, Log, Polyline, Locker };

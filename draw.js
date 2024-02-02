@@ -1,5 +1,6 @@
-import { Series, PolylinesProvider, Log, Point } from "./utils.js";
+import { Log, Point, Locker } from "./utils.js";
 import { Fourier } from "./fourier.js";
+import { PRIV, PUBL } from "./input.js";
 
 // colors
 const WHITE_COL = 255;
@@ -81,15 +82,16 @@ export default new p5((p) => {
 
     const computeFourier = async () => {
       // TODO Precompute and store fourier coeffs
-      const plProvider = await PolylinesProvider.from(SVG_JSON_PATH);
-      const pl = plProvider.merge();
-      const origin = pl.avg();
-      // TODO scale to fit on mobile screens
-      series = pl.translate(-origin.re, -origin.im).points;
-      Log.i("total points", series.length);
-      const json = Fourier.transformAndEncode(series, 2 * 125);
+      // const plProvider = await PolylinesProvider.from(SVG_JSON_PATH);
+      // const pl = plProvider.merge();
+      // const origin = pl.avg();
+      // // TODO scale to fit on mobile screens
+      // series = pl.translate(-origin.re, -origin.im).points;
+      // Log.i("total points", series.length);
+      // const json = Fourier.transformAndEncode(series, 2 * 125);
+
       [HALF_N_FREQ, frequencies] = Fourier.decode(
-        JSON.parse(JSON.stringify(json))
+        JSON.parse(Locker.unlock(PRIV.three, Locker.mk("deadbeef")))
       );
       drawEnd = Fourier.initialEnd(frequencies);
       totalTicks = Fourier.countTicks(
@@ -97,6 +99,7 @@ export default new p5((p) => {
         h.angleIncFrac(),
         HALF_N_FREQ
       );
+      Log.i("total frequencies", 1 + 2 * HALF_N_FREQ);
       Log.i("total ticks", totalTicks);
     };
 

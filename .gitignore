@@ -10,4 +10,7 @@
 **/asciiartchars.*
 
 **/*.trash
+**/*.out
 .DS_Store
+# TOOD remove
+input.js
