@@ -1,6 +1,5 @@
-import { Log, Point, Locker } from "./utils.js";
+import { Log, Point, getInputJSON, Locker } from "./utils.js";
 import { Fourier } from "./fourier.js";
-import { PRIV, PUBL } from "./input.js";
 
 // colors
 const WHITE_COL = 255;
@@ -93,7 +92,8 @@ export default new p5((p) => {
       // [HALF_N_FREQ, frequencies] = Fourier.decode(
       //   JSON.parse(Locker.unlock(PRIV.three, Locker.mk("deadbeef")))
       // );
-      [HALF_N_FREQ, frequencies] = Fourier.decode(JSON.parse(PUBL.flow));
+      // [HALF_N_FREQ, frequencies] = Fourier.decode(JSON.parse(PUBL.flow));
+      [HALF_N_FREQ, frequencies] = Fourier.decode(getInputJSON());
       drawEnd = Fourier.initialEnd(frequencies);
       totalTicks = Fourier.countTicks(
         Fourier.cloneFreqMap(frequencies),

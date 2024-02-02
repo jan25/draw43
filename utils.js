@@ -1,5 +1,6 @@
 import { default as Complex } from "./lib/complex.min.js";
 import { default as aesjs } from "./lib/aes.js";
+import { PRIV, PUBL } from "./input.js";
 
 // Logger utilities.
 const Log = {};
@@ -96,4 +97,35 @@ class Locker {
   };
 }
 
-export { Point, Log, Polyline, Locker };
+const err = () => {
+  window.location.href = "https://www.google.com/search?q=sorry";
+};
+
+const param = (k, defaultFn = () => err()) => {
+  const searchParams = new URLSearchParams(window.location.search);
+  return searchParams.has(k) ? searchParams.get(k) : defaultFn();
+};
+
+// Resolve a input JSON based on URL params
+const getInputJSON = () => {
+  const kind = param("k", () => "three");
+  Log.i("kind", kind);
+
+  if (kind in PRIV) {
+    // const key = prompt("Enter key");
+    const key = "deadbeef";
+    try {
+      return JSON.parse(Locker.unlock(PRIV[kind], Locker.mk(key)));
+    } catch (e) {
+      Log.e(e);
+      err();
+    }
+  } else if (kind in PUBL) {
+    return JSON.parse(PUBL[kind]);
+  } else {
+    // TODO show rose URL
+    err();
+  }
+};
+
+export { Point, Log, Polyline, Locker, getInputJSON };
