@@ -18,8 +18,7 @@ Fourier transforms, Bazier curves, Affine transformation, P5js, Blender
 
 ## TODO
 
-- Background color (make lighter, see for e.g. raw image in browser)
-- Add Rose line diagram and switch using URL mode param
-- Mobile support - dimensions and event handlers
-- Add restart drawing option during/on finish
 - Show % complete on zoom
+- Add restart drawing option during/on finish
+- Background color (make lighter, see for e.g. raw image in browser)
+- Mobile support - dimensions and event handlers

@@ -1,4 +1,4 @@
-import { Log, Point, getInputJSON, Locker } from "./utils.js";
+import { Log, Point, getInputJSON } from "./utils.js";
 import { Fourier } from "./fourier.js";
 
 // colors
@@ -142,9 +142,7 @@ export default new p5((p) => {
     // h.drawSeries(nextSeries);
 
     if (!drawingDone) {
-      if (!stopDrawing) {
-        h.animateDrawing();
-      }
+      h.animateDrawing(stopDrawing);
       h.showPctAndCtrls(centerX, centerY);
       if (drawn.length > totalTicks) {
         drawingDone = true;
@@ -182,7 +180,7 @@ export default new p5((p) => {
     p.pop();
   };
 
-  h.animateDrawing = () => {
+  h.animateDrawing = (stopDrawing) => {
     let center = new Point(0, 0);
 
     h.drawArrowAndEpicycleWithCenterVector(center, frequencies.get(0));
@@ -196,11 +194,12 @@ export default new p5((p) => {
       h.drawArrowAndEpicycleWithCenterVector(center, frequencies.get(-f));
       center = center.add(frequencies.get(-f));
     }
-    drawEnd = center;
-    // TODO prune
-    drawn.push(drawEnd);
 
-    h.advanceTime();
+    if (!stopDrawing) {
+      drawEnd = center;
+      drawn.push(drawEnd);
+      h.advanceTime();
+    }
   };
 
   // Affine transformation: scaled zoom at a specified centerX/Y.

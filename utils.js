@@ -112,6 +112,7 @@ const getInputJSON = () => {
   Log.i("kind", kind);
 
   if (kind in PRIV) {
+    // TODO local strage for key cache
     // const key = prompt("Enter key");
     const key = "deadbeef";
     try {
