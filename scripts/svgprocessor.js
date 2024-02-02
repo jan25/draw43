@@ -21,6 +21,18 @@ const cliArgs = [
     defaultValue: "scripts/bazieroutline_800wx700h.svg",
   },
   {
+    name: "width",
+    alias: "w",
+    type: Number,
+    defaultValue: WIDTH,
+  },
+  {
+    name: "height",
+    alias: "h",
+    type: Number,
+    defaultValue: HEIGHT,
+  },
+  {
     name: "output",
     alias: "o",
     type: String,
@@ -100,14 +112,14 @@ const parseSvg = (path, width, height, mode = "polyline") => {
     if (scaled.length > 1) {
       throw new Error("More than one polylines is not supported for fourier");
     }
-    toFourier(scaled[0], width, height);
+    toFourier(scaled[0]);
     return;
   }
 
   throw new Error("Invalid mode: " + args.mode);
 };
 
-const toFourier = (polyline, width, height) => {
+const toFourier = (polyline) => {
   const plObj = Polyline.fromRawPoints(polyline);
   const origin = plObj.avg();
   const series = plObj.translate(-origin.re, -origin.im).points;
@@ -126,6 +138,7 @@ const toFourier = (polyline, width, height) => {
   console.log(`Written output to ${outPath}`);
 };
 
+// TODO get rid of raw point writes to file
 const writeToFile = (polylines, width, height) => {
   const outPath = args.output;
   writeFileSync(
@@ -147,4 +160,4 @@ const elems = (elementsArr, fn = (e) => e.type == "element") => {
   return _.filter(elementsArr, fn);
 };
 
-parseSvg(args.input, WIDTH, HEIGHT, MODE);
+parseSvg(args.input, args.width, args.height, MODE);

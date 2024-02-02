@@ -90,9 +90,10 @@ export default new p5((p) => {
       // Log.i("total points", series.length);
       // const json = Fourier.transformAndEncode(series, 2 * 125);
 
-      [HALF_N_FREQ, frequencies] = Fourier.decode(
-        JSON.parse(Locker.unlock(PRIV.three, Locker.mk("deadbeef")))
-      );
+      // [HALF_N_FREQ, frequencies] = Fourier.decode(
+      //   JSON.parse(Locker.unlock(PRIV.three, Locker.mk("deadbeef")))
+      // );
+      [HALF_N_FREQ, frequencies] = Fourier.decode(JSON.parse(PUBL.flow));
       drawEnd = Fourier.initialEnd(frequencies);
       totalTicks = Fourier.countTicks(
         Fourier.cloneFreqMap(frequencies),
@@ -132,9 +133,10 @@ export default new p5((p) => {
     p.translate(centerX, centerY);
     p.scale(currentScale);
 
-    if (showOrigSeries) {
-      h.drawSeries(series);
-    }
+    // TODO remove support for hide/show original series
+    // if (showOrigSeries) {
+    //   h.drawSeries(series);
+    // }
 
     // TODO enable for mouse mode
     // h.drawSeries(nextSeries);
