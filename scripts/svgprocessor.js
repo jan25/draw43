@@ -112,20 +112,25 @@ const parseSvg = (path, width, height, mode = "polyline") => {
     if (scaled.length > 1) {
       throw new Error("More than one polylines is not supported for fourier");
     }
-    toFourier(scaled[0]);
+    toFourier(scaled[0], width, height);
     return;
   }
 
   throw new Error("Invalid mode: " + args.mode);
 };
 
-const toFourier = (polyline) => {
+const toFourier = (polyline, width, height) => {
   const plObj = Polyline.fromRawPoints(polyline);
   const origin = plObj.avg();
   const series = plObj.translate(-origin.re, -origin.im).points;
   console.log("applying fourier transform");
 
-  const json = Fourier.transformAndEncode(series, 2 * args.num_freq);
+  const json = Fourier.transformAndEncode(
+    series,
+    2 * args.num_freq,
+    width,
+    height
+  );
   let data = JSON.stringify(json);
 
   if (args.encrypt) {

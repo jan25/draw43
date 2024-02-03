@@ -109,24 +109,29 @@ Fourier.countTicks = (frequencies, angleInc, halfFreqN) => {
 };
 
 // transforms and encodes fourier as JSON
-Fourier.transformAndEncode = (series, nFreq) => {
+Fourier.transformAndEncode = (series, nFreq, width, height) => {
   const frequencies = Fourier.transform(series, nFreq);
   for (const [f, p] of frequencies) {
     frequencies.set(f, [p.re, p.im]);
   }
   const json = {
+    width,
+    height,
     halfNFreq: Math.round(nFreq / 2),
     frequencies: Object.fromEntries(frequencies),
   };
   return json;
 };
 
-// decodes fourier from JSON
-Fourier.decode = (json) => {
-  const { halfNFreq, frequencies } = json;
+// decodes fourier from JSON and adjusts scale
+Fourier.decode = (json, targetW, targetH) => {
+  const { width, height, halfNFreq, frequencies } = json;
+  const scale = Math.min(targetW / width, targetH / height);
+  Log.i("source dims", width, height, "target dims", targetW, targetH);
+  Log.i("scaling fourier by", scale);
   const frequenciesMap = new Map();
   for (const [f, p] of new Map(Object.entries(frequencies))) {
-    frequenciesMap.set(parseInt(f), new Point(p[0], p[1]));
+    frequenciesMap.set(parseInt(f), new Point(p[0], p[1]).mul(scale));
   }
   return [halfNFreq, frequenciesMap];
 };

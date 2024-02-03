@@ -34,8 +34,7 @@ const MOBILE_CTRLS = "Tap to toggle zoom";
 let IS_MOBILE = false;
 
 // inputs
-let HALF_N_FREQ = 10;
-const SVG_JSON_PATH = "scripts/bazieroutline_800wx700h.svg-parsed.json";
+let HALF_N_FREQ;
 
 // state
 let series;
@@ -77,14 +76,14 @@ export default new p5((p) => {
   };
 
   // setup drawing area before drawing can begin. runs once.
-  p.setup = async () => {
+  p.setup = () => {
     const setupDims = () => {
       IS_MOBILE = p.windowWidth < 600;
       [CANVAS_H, CANVAS_W] = [p.windowHeight, p.windowWidth];
       [CENTER_X, CENTER_Y] = [CANVAS_W / 2, CANVAS_H / 2];
     };
 
-    const computeFourier = async () => {
+    const computeFourier = () => {
       // TODO Precompute and store fourier coeffs
       // const plProvider = await PolylinesProvider.from(SVG_JSON_PATH);
       // const pl = plProvider.merge();
@@ -98,7 +97,11 @@ export default new p5((p) => {
       //   JSON.parse(Locker.unlock(PRIV.three, Locker.mk("deadbeef")))
       // );
       // [HALF_N_FREQ, frequencies] = Fourier.decode(JSON.parse(PUBL.flow));
-      [HALF_N_FREQ, frequencies] = Fourier.decode(getInputJSON());
+      [HALF_N_FREQ, frequencies] = Fourier.decode(
+        getInputJSON(),
+        CANVAS_W,
+        CANVAS_H
+      );
       drawEnd = Fourier.initialEnd(frequencies);
       totalTicks = Fourier.countTicks(
         Fourier.cloneFreqMap(frequencies),
@@ -110,7 +113,7 @@ export default new p5((p) => {
     };
 
     setupDims();
-    await computeFourier();
+    computeFourier();
     p.frameRate(FRAME_RATE);
     // Setup canvas
     const canvas = p.createCanvas(

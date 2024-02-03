@@ -1,10 +1,10 @@
 # draw43
 
-Yet another 14 Feb project. This time it is 2D line drawing with Fourier series. Drawing a rose isn't a bad idea.
+Yet another 14 Feb project. This time it is 2D line drawing with Fourier series.
 
 The input to the program is a svg file, which gets transformed to Fourier series and gets fed to a drawing program. It then simulates series as epicycles.
 
-See a rose being drawn here: <TODO LINK> with debug param.
+Drawing a rose isn't a bad idea. See it here: <TODO LINK> with debug param.
 
 ## Fourier
 
@@ -26,3 +26,4 @@ Fourier transforms, Bazier curves, Affine transformation, P5js, Blender
 - Add restart drawing option during/on finish
 - Background color (make lighter, see for e.g. raw image in browser)
 - Mobile support - dimensions and event handlers
+- make right i more accurate
