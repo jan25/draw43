@@ -4,9 +4,14 @@ import { Fourier } from "./fourier.js";
 // colors
 const WHITE_COL = 255;
 const BLACK_COL = 0;
-const GREY_COL = 150;
-const DIMGREY_COL = 50;
-const BG_COL = BLACK_COL;
+const GREY_COL = 50;
+const DIMGREY_COL = 150;
+const DIMDIMGREY_COL = 220;
+const BG_COL = WHITE_COL;
+const LINE_COL = GREY_COL;
+const ARROW_COL = DIMGREY_COL;
+const EPICYC_COL = DIMDIMGREY_COL;
+const TEXT_COL = BLACK_COL;
 
 // dims and co-ords
 let CANVAS_H;
@@ -23,9 +28,9 @@ const ZOOM_SCALE_FAC = 6000;
 const Z_KEY = 90;
 const H_KEY = 72;
 const S_KEY = 83;
-const DESKTOP_CTRLS = "press Z to zoom";
+const DESKTOP_CTRLS = "Press Z to toggle zoom";
 // TODO add mobile tap controls
-const MOBILE_CTRLS = "tap to zoom";
+const MOBILE_CTRLS = "Tap to toggle zoom";
 let IS_MOBILE = false;
 
 // inputs
@@ -169,7 +174,7 @@ export default new p5((p) => {
     const pct = Math.floor((drawn.length / totalTicks) * 100);
     p.textSize(12);
     p.textFont("Courier New");
-    p.fill(WHITE_COL);
+    p.fill(TEXT_COL);
     p.strokeWeight(0.3);
     p.textAlign(p.CENTER, p.BOTTOM);
     p.text(
@@ -256,7 +261,7 @@ export default new p5((p) => {
   h.drawDrawn = () => {
     p.push();
 
-    p.stroke(WHITE_COL);
+    p.stroke(LINE_COL);
     for (const i in drawn) {
       if (i == 0) continue;
       // TODO use p5 bazier curves
@@ -275,7 +280,7 @@ export default new p5((p) => {
     }
 
     p.translate(-centerX, -centerY);
-    p.stroke(WHITE_COL);
+    p.stroke(LINE_COL);
     for (let i = 1; i < series.length; i++) {
       const [start, end] = [series[i - 1], series[i]];
       h.lineScaled(start.re, start.im, end.re, end.im);
@@ -300,7 +305,7 @@ export default new p5((p) => {
   h.drawArrow = (x, y, mag, angle) => {
     p.push();
 
-    p.stroke(WHITE_COL);
+    p.stroke(ARROW_COL);
     p.translate(x, y);
     p.rotate(angle);
     h.lineScaled(0, 0, mag, 0);
@@ -309,7 +314,7 @@ export default new p5((p) => {
     const headSize = h.getArrowHeadSizeScaled(mag / 10);
     p.translate(mag - headSize, 0);
     p.noStroke();
-    p.fill(WHITE_COL);
+    p.fill(ARROW_COL);
     h.triangleScaled(headSize);
 
     p.pop();
@@ -319,7 +324,7 @@ export default new p5((p) => {
     p.push();
 
     p.noFill();
-    p.stroke(DIMGREY_COL);
+    p.stroke(EPICYC_COL);
     h.circleScaled(x, y, radius);
 
     p.pop();
@@ -334,7 +339,8 @@ export default new p5((p) => {
 
   h.lineScaled = (x1, y1, x2, y2) => {
     p.push();
-    p.strokeWeight(zoomOn ? 1 / currentScale : 1);
+    p.strokeWeight(zoomOn ? 2 / currentScale : 2);
+    // p.strokeWeight(1);
     p.line(x1, y1, x2, y2);
     p.pop();
   };

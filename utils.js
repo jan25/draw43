@@ -97,6 +97,21 @@ class Locker {
   };
 }
 
+// Cache within a session
+class Storage {
+  static set = (k, v) => {
+    sessionStorage.setItem(`key:${k}`, v);
+  };
+
+  static get = (k, defaultVal = undefined) => {
+    return sessionStorage.getItem(`key:${k}`) || defaultVal;
+  };
+
+  static rm = (k) => {
+    sessionStorage.removeItem(`key:${k}`);
+  };
+}
+
 const err = () => {
   window.location.href = "https://www.google.com/search?q=sorry";
 };
@@ -112,12 +127,12 @@ const getInputJSON = () => {
   Log.i("kind", kind);
 
   if (kind in PRIV) {
-    // TODO local strage for key cache
-    // const key = prompt("Enter key");
-    const key = "deadbeef";
+    const key = Storage.get(kind) || prompt("Enter key");
     try {
+      Storage.set(kind, key);
       return JSON.parse(Locker.unlock(PRIV[kind], Locker.mk(key)));
     } catch (e) {
+      Storage.rm(kind);
       Log.e(e);
       err();
     }

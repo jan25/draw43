@@ -16,6 +16,10 @@ Motivation: [What is fourier series? (YouTube)](https://www.youtube.com/watch?ap
 
 Fourier transforms, Bazier curves, Affine transformation, P5js, Blender
 
+## Design
+
+![Alt text](./assets/design.svg)
+
 ## TODO
 
 - Show % complete on zoom

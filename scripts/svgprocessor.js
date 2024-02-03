@@ -13,7 +13,7 @@ const [WIDTH, HEIGHT] = [800, 700];
 const MODE = "polygon";
 
 const cliArgs = [
-  { name: "mode", alias: "m", type: String, defaultValue: "file" },
+  { name: "mode", alias: "m", type: String, defaultValue: "fourier" },
   {
     name: "input",
     alias: "i",

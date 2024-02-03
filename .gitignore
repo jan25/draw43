@@ -1,6 +1,7 @@
 **/*.jpeg
 **/*.jpg
 **/*.svg
+!design.svg
 **/*.png
 **/*.blend*
 
