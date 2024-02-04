@@ -35,8 +35,8 @@
       const cols = new Map();
 
       // 30/12 said you like flowers
-      const idx = (date) =>
-        Math.floor((date - new Date(2023, 12, 30).getTime()) / UPD_MS);
+      const seed = new Date(2023, 12, 30).getTime();
+      const idx = (date) => Math.floor((date - seed) / UPD_MS);
 
       const upd = () => {
         const mapIdx = idx(new Date().getTime());

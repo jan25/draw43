@@ -13,5 +13,5 @@
 **/*.trash
 **/*.out
 .DS_Store
-# TOOD remove
+# TODO remove
 input.js

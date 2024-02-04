@@ -17,3 +17,12 @@ How to export SVG?
 - Select bazier curve object on right panel
 - Right click on curve object and Convert > Grease Pencil
 - Select Grease Pencil and File > Export > Grease Pencil as SVG
+
+## TODO
+
+- Show % complete on zoom
+- Add restart drawing option during/on finish
+- make right i more accurate and the left nostril
+- github pages deployment
+- Make interaction simple. Loop: zoom out -> zoom in -> stop -> zoom out -> resume. zoom out on finish and disable controls. Space for desktop and Tap for mobile.
+- Offline support

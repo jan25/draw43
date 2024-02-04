@@ -9,6 +9,8 @@ import _ from "lodash";
 import { Locker, Log, Polyline } from "../utils.js";
 import { Fourier } from "../fourier.js";
 
+Log.DEBUG_MODE = true;
+
 const [WIDTH, HEIGHT] = [800, 700];
 const MODE = "polygon";
 
@@ -18,7 +20,7 @@ const cliArgs = [
     name: "input",
     alias: "i",
     type: String,
-    defaultValue: "scripts/bazieroutline_800wx700h.svg",
+    defaultValue: "scripts/img.svg",
   },
   {
     name: "width",
@@ -74,6 +76,7 @@ const scaleDim = (val, target, src) => {
   return (val * target) / src;
 };
 
+// TODO preserve aspect ratio
 const scalePolylinePoints = (polyline, targetW, targetH, srcW, srcH) => {
   _.forEach(polyline, (pt) => {
     pt.x = scaleDim(pt.x, targetW, srcW);
@@ -82,8 +85,8 @@ const scalePolylinePoints = (polyline, targetW, targetH, srcW, srcH) => {
   return polyline;
 };
 
-const parseSvg = (path, width, height, mode = "polyline") => {
-  const data = readFileSync(path, "utf8").toString();
+const parseSvg = (filePath, width, height, mode = "polyline") => {
+  const data = readFileSync(filePath, "utf8").toString();
   const xml = xml2js(data);
 
   const svg = elems(xml.elements, (e) => e.name == "svg")[0];
@@ -123,7 +126,7 @@ const toFourier = (polyline, width, height) => {
   const plObj = Polyline.fromRawPoints(polyline);
   const origin = plObj.avg();
   const series = plObj.translate(-origin.re, -origin.im).points;
-  console.log("applying fourier transform");
+  Log.i("applying fourier transform");
 
   const json = Fourier.transformAndEncode(
     series,
@@ -134,13 +137,13 @@ const toFourier = (polyline, width, height) => {
   let data = JSON.stringify(json);
 
   if (args.encrypt) {
-    console.log("encrypting");
+    Log.i("encrypting");
     data = Locker.lock(data, Locker.mk(args.key));
   }
 
   const outPath = args.output;
   writeFileSync(outPath, data);
-  console.log(`Written output to ${outPath}`);
+  Log.i(`Written output to ${outPath}`);
 };
 
 // TODO get rid of raw point writes to file
@@ -158,7 +161,7 @@ const writeToFile = (polylines, width, height) => {
       /*space*/ 2
     )
   );
-  console.log(`Written output to ${outPath}`);
+  Log.i(`Written output to ${outPath}`);
 };
 
 const elems = (elementsArr, fn = (e) => e.type == "element") => {

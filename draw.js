@@ -7,7 +7,7 @@ const BLACK_COL = 0;
 const GREY_COL = 50;
 const DIMGREY_COL = 150;
 const DIMDIMGREY_COL = 220;
-const BG_COL = WHITE_COL;
+const BG_COL = WHITE_COL; // TODO use less bright col: e.g. light yellow
 const LINE_COL = GREY_COL;
 const ARROW_COL = DIMGREY_COL;
 const EPICYC_COL = DIMDIMGREY_COL;
@@ -18,6 +18,10 @@ let CANVAS_H;
 let CANVAS_W;
 let CENTER_X;
 let CENTER_Y;
+let CANVAS_PAD;
+const TEXT_SIZE = 13;
+const TEXT_PAD = 5;
+const TEXT_STROKE = 0.4;
 
 // animation settings
 const FRAME_RATE = 30;
@@ -40,7 +44,6 @@ let HALF_N_FREQ;
 let series;
 let drawn = [];
 let nextSeries = [];
-let drawEnd;
 let frequencies;
 let zoomOn = false;
 let mouseOn = false;
@@ -59,6 +62,7 @@ export default new p5((p) => {
 
   // setup event handlers
   p.keyPressed = () => {
+    // TODO smooth zoom in/out
     // toggle zoom.
     if (p.keyCode == Z_KEY) {
       h.toggleZoom();
@@ -79,30 +83,19 @@ export default new p5((p) => {
   p.setup = () => {
     const setupDims = () => {
       IS_MOBILE = p.windowWidth < 600;
+      CANVAS_PAD = IS_MOBILE ? 0 : 50;
       [CANVAS_H, CANVAS_W] = [p.windowHeight, p.windowWidth];
       [CENTER_X, CENTER_Y] = [CANVAS_W / 2, CANVAS_H / 2];
     };
 
     const computeFourier = () => {
-      // TODO Precompute and store fourier coeffs
-      // const plProvider = await PolylinesProvider.from(SVG_JSON_PATH);
-      // const pl = plProvider.merge();
-      // const origin = pl.avg();
-      // // TODO scale to fit on mobile screens
-      // series = pl.translate(-origin.re, -origin.im).points;
-      // Log.i("total points", series.length);
-      // const json = Fourier.transformAndEncode(series, 2 * 125);
-
-      // [HALF_N_FREQ, frequencies] = Fourier.decode(
-      //   JSON.parse(Locker.unlock(PRIV.three, Locker.mk("deadbeef")))
-      // );
-      // [HALF_N_FREQ, frequencies] = Fourier.decode(JSON.parse(PUBL.flow));
       [HALF_N_FREQ, frequencies] = Fourier.decode(
         getInputJSON(),
-        CANVAS_W,
-        CANVAS_H
+        CANVAS_W - 2 * CANVAS_PAD,
+        CANVAS_H - 2 * CANVAS_PAD
       );
-      drawEnd = Fourier.initialEnd(frequencies);
+      // Append initial drawEnd.
+      drawn.push(Fourier.initialEnd(frequencies));
       totalTicks = Fourier.countTicks(
         Fourier.cloneFreqMap(frequencies),
         h.angleIncFrac(),
@@ -132,9 +125,20 @@ export default new p5((p) => {
   // drawing loop
   p.draw = () => {
     p.background(BG_COL);
-    const [centerX, centerY] = zoomOn
+
+    let drawEnd = drawn[drawn.length - 1];
+    if (!stopDrawing && !drawingDone) {
+      h.advanceTime(frequencies);
+      drawEnd = h.getDrawEnd(frequencies);
+      drawn.push(drawEnd);
+    }
+
+    const { centerX, centerY } = zoomOn
       ? h.getScaledOrigin(drawEnd.re + CENTER_X, drawEnd.im + CENTER_Y)
-      : [CENTER_X, CENTER_Y];
+      : {
+          centerX: CENTER_X,
+          centerY: CENTER_Y,
+        };
 
     // TODO fix messy translates which are confusing all over. Make
     // all rendering functions pure using centerX/Y args.
@@ -161,55 +165,6 @@ export default new p5((p) => {
     h.drawDrawn();
   };
 
-  h.toggleZoom = () => {
-    zoomOn = !zoomOn;
-    Log.i(`zoom is ${zoomOn ? "on" : "off"}`);
-    if (zoomOn) {
-      currentScale = ZOOM_SCALE_FAC / 100;
-    } else {
-      currentScale = 1;
-    }
-  };
-
-  h.showPctAndCtrls = (centerX, centerY) => {
-    p.push();
-    const pad = 5;
-    const pct = Math.floor((drawn.length / totalTicks) * 100);
-    p.textSize(12);
-    p.textFont("Courier New");
-    p.fill(TEXT_COL);
-    p.strokeWeight(0.3);
-    p.textAlign(p.CENTER, p.BOTTOM);
-    p.text(
-      `${pct}% complete\n${IS_MOBILE ? MOBILE_CTRLS : DESKTOP_CTRLS}`,
-      0,
-      CANVAS_H - centerY - pad
-    );
-    p.pop();
-  };
-
-  h.animateDrawing = (stopDrawing) => {
-    let center = new Point(0, 0);
-
-    h.drawArrowAndEpicycleWithCenterVector(center, frequencies.get(0));
-    center = center.add(frequencies.get(0));
-
-    // Why alternate freqs? Can these be ordered by magnitude?
-    for (let f = 1; f <= HALF_N_FREQ; f += 1) {
-      h.drawArrowAndEpicycleWithCenterVector(center, frequencies.get(f));
-      center = center.add(frequencies.get(f));
-
-      h.drawArrowAndEpicycleWithCenterVector(center, frequencies.get(-f));
-      center = center.add(frequencies.get(-f));
-    }
-
-    if (!stopDrawing) {
-      drawEnd = center;
-      drawn.push(drawEnd);
-      h.advanceTime();
-    }
-  };
-
   // Affine transformation: scaled zoom at a specified centerX/Y.
   // Source: https://stackoverflow.com/a/70888506
   h.getScaledOrigin = (centerX, centerY) => {
@@ -228,14 +183,67 @@ export default new p5((p) => {
       y: (viewCenterPos.y / currentScale) * (newScale - currentScale),
     };
 
-    return [CENTER_X - originShift.x, CENTER_Y - originShift.y];
+    return {
+      centerX: CENTER_X - originShift.x,
+      centerY: CENTER_Y - originShift.y,
+    };
+  };
+
+  h.getDrawEnd = (frequencies) => {
+    let center = new Point(0, 0).add(frequencies.get(0));
+    for (let f = 1; f <= HALF_N_FREQ; f += 1) {
+      center = center.add(frequencies.get(f)).add(frequencies.get(-f));
+    }
+    return center;
+  };
+
+  h.toggleZoom = () => {
+    zoomOn = !zoomOn;
+    Log.i(`zoom is ${zoomOn ? "on" : "off"}`);
+    if (zoomOn) {
+      currentScale = ZOOM_SCALE_FAC / 100;
+    } else {
+      currentScale = 1;
+    }
+  };
+
+  h.showPctAndCtrls = (centerX, centerY) => {
+    p.push();
+    const pct = Math.floor((drawn.length / totalTicks) * 100);
+    p.textSize(TEXT_SIZE / currentScale);
+    p.textFont("Courier New");
+    p.fill(TEXT_COL);
+    p.strokeWeight(TEXT_STROKE / currentScale);
+    p.textAlign(p.CENTER, p.BOTTOM);
+    p.text(
+      `${pct}% complete\n${IS_MOBILE ? MOBILE_CTRLS : DESKTOP_CTRLS}`,
+      (CENTER_X - centerX) / currentScale,
+      (CANVAS_H - centerY - TEXT_PAD) / currentScale
+    );
+    p.pop();
+  };
+
+  h.animateDrawing = () => {
+    let center = new Point(0, 0);
+
+    h.drawArrowAndEpicycleWithCenterVector(center, frequencies.get(0));
+    center = center.add(frequencies.get(0));
+
+    // Why alternate freqs? Can these be ordered by magnitude?
+    for (let f = 1; f <= HALF_N_FREQ; f += 1) {
+      h.drawArrowAndEpicycleWithCenterVector(center, frequencies.get(f));
+      center = center.add(frequencies.get(f));
+
+      h.drawArrowAndEpicycleWithCenterVector(center, frequencies.get(-f));
+      center = center.add(frequencies.get(-f));
+    }
   };
 
   h.angleIncFrac = () => {
     return (2 * Math.PI) / (SLOWNESS_FAC * FRAME_RATE);
   };
 
-  h.advanceTime = () => {
+  h.advanceTime = (frequencies) => {
     for (const [f, p] of frequencies) {
       frequencies.set(
         f,

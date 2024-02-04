@@ -1,10 +1,10 @@
 import { Log, Point } from "./utils.js";
-// Original source: https://gist.github.com/anonymous/129d477ddb1c8025c9ac
 
 // Fourier series helpers.
 const Fourier = {};
 
 /**
+ * Original source: https://gist.github.com/anonymous/129d477ddb1c8025c9ac
  * @param  data  list of points representing a time function in 2D.
  * @param  nFreq number of sub frequency functions to split into.
  *                    excluding constant frequency function.
