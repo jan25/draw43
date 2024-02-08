@@ -1,3 +1,5 @@
+# Project internal notes
+
 ## Blender
 
 I used blender tool to draw continuous line drawing which is input as svg to drawing program.

@@ -1,4 +1,4 @@
-import { Log, Point, getInputJSON } from "./utils.js";
+import { Log, Point, getInputJSON, param } from "./utils.js";
 import { Fourier } from "./fourier.js";
 
 // colors
@@ -25,7 +25,7 @@ const TEXT_PAD = 10;
 
 // animation settings
 const FRAME_RATE = 30; // TODO drawing towards end seems laggy on mobile
-const SLOWNESS_FAC = 175; // TODO add slow, fast modes
+let SLOWNESS_FAC = 175;
 const ZOOM_SCALE_MAX = 6000;
 const ZOOM_SCALE_INC = 100;
 let ZOOM_FAC = 100;
@@ -34,9 +34,6 @@ let ZOOM_FAC = 100;
 const Z_KEY = 90;
 const H_KEY = 72;
 const S_KEY = 83;
-const DESKTOP_CTRLS = "Press Z to toggle zoom";
-// TODO add mobile tap controls
-const MOBILE_CTRLS = "Tap to toggle zoom";
 let IS_MOBILE = false;
 
 // inputs
@@ -72,9 +69,14 @@ export default new p5((p) => {
     }
   };
 
-  // Zoom for mobile screen.
+  // Tap to zoom/redraw for mobile screen.
+  // Click to zoom/redraw for desktop screen.
   p.touchStarted = () => {
-    h.toggleZoom();
+    if (!drawingDone) {
+      h.toggleZoom();
+    } else {
+      h.resetDrawing();
+    }
     return false; // avoid default browser behavior.
   };
 
@@ -86,6 +88,11 @@ export default new p5((p) => {
       [CANVAS_H, CANVAS_W] = [p.windowHeight, p.windowWidth];
       [CENTER_X, CENTER_Y] = [CANVAS_W / 2, CANVAS_H / 2];
     };
+
+    // Pre-req for computerFourier
+    SLOWNESS_FAC =
+      SLOWNESS_FAC /
+      Math.min(5, Math.max(1, parseInt(param("speed", () => 1))));
 
     const computeFourier = () => {
       [HALF_N_FREQ, frequencies] = Fourier.decode(
@@ -153,6 +160,11 @@ export default new p5((p) => {
     h.drawDrawn();
   };
 
+  h.resetDrawing = () => {
+    drawn = [Fourier.initialEnd(frequencies)];
+    drawingDone = false;
+  };
+
   h.updateScale = () => {
     ZOOM_FAC += zoomOn ? ZOOM_SCALE_INC : -1 * ZOOM_SCALE_INC;
     ZOOM_FAC = Math.max(100, Math.min(ZOOM_FAC, ZOOM_SCALE_MAX));
@@ -197,10 +209,10 @@ export default new p5((p) => {
   };
 
   h.getText = (pct) => {
-    const ctrls = drawingDone
-      ? ""
-      : `\n${IS_MOBILE ? MOBILE_CTRLS : DESKTOP_CTRLS}`;
-    return `${pct}% complete${ctrls}`;
+    const subline = drawingDone
+      ? `\n${IS_MOBILE ? "Tap to redraw" : "Click to redraw"}`
+      : `\n${IS_MOBILE ? "Tap to toggle zoom" : "Click to toggle zoom"}`;
+    return `${pct}% complete${subline}`;
   };
 
   h.showPctAndCtrls = (centerX, centerY) => {

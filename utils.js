@@ -144,4 +144,4 @@ const getInputJSON = () => {
   }
 };
 
-export { Point, Log, Polyline, Locker, getInputJSON };
+export { Point, Log, Polyline, Locker, getInputJSON, param };
