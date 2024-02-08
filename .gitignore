@@ -1,8 +1,9 @@
 **/*.jpeg
 **/*.jpg
 **/*.svg
-!design.svg
+!rose.svg
 **/*.png
+!design.png
 **/*.blend*
 
 **/package-lock.json
@@ -13,5 +14,3 @@
 **/*.trash
 **/*.out
 .DS_Store
-# TODO remove
-input.js

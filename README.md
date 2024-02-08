@@ -18,4 +18,4 @@ Fourier transforms, Bazier curves, Affine transformation, P5js, Blender
 
 ## Design
 
-![Alt text](./assets/design.svg)
+![Alt text](./assets/design.png)
