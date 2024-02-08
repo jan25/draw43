@@ -4,7 +4,7 @@ Yet another 14 Feb project. This time it is 2D line drawing with Fourier series.
 
 The input to the program is a SVG file. It gets transformed to Fourier series and gets fed to a drawing program. Which then simulates series as epicycles.
 
-Drawing a rose isn't a bad idea: [see demo](https://jan25.github.io/draw43/?k=flow).
+Drawing a rose isn't a bad idea: [see demo](https://jan25.github.io/draw43/?k=flow&speed=3).
 
 Find complete workflow in design section below.
 
