@@ -22,7 +22,6 @@ let CENTER_Y;
 let CANVAS_PAD;
 const TEXT_SIZE = 13;
 const TEXT_PAD = 10;
-const TEXT_STROKE = 2;
 
 // animation settings
 const FRAME_RATE = 30; // TODO drawing towards end seems laggy on mobile
@@ -44,13 +43,9 @@ let IS_MOBILE = false;
 let HALF_N_FREQ;
 
 // state
-let series;
 let drawn = [];
-let nextSeries = [];
 let frequencies;
 let zoomOn = false;
-let mouseOn = false;
-let showOrigSeries = false;
 let stopDrawing = false;
 let drawingDone = false; // TODO add restart feature on end
 let currentScale = 1;
@@ -69,11 +64,6 @@ export default new p5((p) => {
     // toggle zoom.
     if (p.keyCode == Z_KEY) {
       h.toggleZoom();
-    }
-    // toggle original series.
-    if (p.keyCode == H_KEY && Log.DEBUG_MODE) {
-      showOrigSeries = !showOrigSeries;
-      Log.i(`showOrigSeries is ${showOrigSeries ? "on" : "off"}`);
     }
     // toggle drawing animation.
     if (p.keyCode == S_KEY) {
@@ -123,12 +113,6 @@ export default new p5((p) => {
       CANVAS_H,
       document.getElementById("draw-area")
     );
-    if (Log.DEBUG_MODE && mouseOn) {
-      h.enableMouseDrawingInputs(canvas);
-    }
-
-    // turn on as default
-    // h.toggleZoom();
   };
 
   // drawing loop
@@ -155,14 +139,6 @@ export default new p5((p) => {
     // all rendering functions pure using centerX/Y args.
     p.translate(centerX, centerY);
     p.scale(currentScale);
-
-    // TODO remove support for hide/show original series
-    // if (showOrigSeries) {
-    //   h.drawSeries(series);
-    // }
-
-    // TODO enable for mouse mode
-    // h.drawSeries(nextSeries);
 
     h.showPctAndCtrls(centerX, centerY);
     if (!drawingDone) {
@@ -272,51 +248,14 @@ export default new p5((p) => {
     }
   };
 
-  h.enableMouseDrawingInputs = (canvas) => {
-    canvas.mousePressed(() => {
-      nextSeries = [];
-    });
-    canvas.mouseMoved(() => {
-      if (p.mouseIsPressed) {
-        nextSeries.push(new Point(p.mouseX - CENTER_X, p.mouseY - CENTER_Y));
-      }
-    });
-    canvas.mouseReleased(() => {
-      series = nextSeries;
-      nextSeries = [];
-      drawn = [];
-      [drawEnd, frequencies] = Fourier.transform(series, 2 * HALF_N_FREQ);
-    });
-  };
-
   h.drawDrawn = () => {
     p.push();
-
     p.stroke(LINE_COL);
     for (const i in drawn) {
       if (i == 0) continue;
       // TODO use p5 bazier curves
       h.lineScaled(drawn[i - 1].re, drawn[i - 1].im, drawn[i].re, drawn[i].im);
     }
-
-    p.pop();
-  };
-
-  h.drawSeries = (series, centerX, centerY) => {
-    p.push();
-
-    if (series.length === 0) {
-      Log.i("skip drawing empty series");
-      return;
-    }
-
-    p.translate(-centerX, -centerY);
-    p.stroke(LINE_COL);
-    for (let i = 1; i < series.length; i++) {
-      const [start, end] = [series[i - 1], series[i]];
-      h.lineScaled(start.re, start.im, end.re, end.im);
-    }
-
     p.pop();
   };
 
@@ -326,38 +265,31 @@ export default new p5((p) => {
 
   h.drawArrowAndEpicycle = (x, y, mag, angle) => {
     p.push();
-
     h.drawArrow(x, y, mag, angle);
     h.drawEpicycle(x, y, mag);
-
     p.pop();
   };
 
   h.drawArrow = (x, y, mag, angle) => {
     p.push();
-
     p.stroke(ARROW_COL);
     p.translate(x, y);
     p.rotate(angle);
     h.lineScaled(0, 0, mag, 0);
-
     // TODO use applyMatrix to rotate and translate
     const headSize = h.getArrowHeadSizeScaled(mag / 10);
     p.translate(mag - headSize, 0);
     p.noStroke();
     p.fill(ARROW_COL);
     h.triangleScaled(headSize);
-
     p.pop();
   };
 
   h.drawEpicycle = (x, y, radius) => {
     p.push();
-
     p.noFill();
     p.stroke(EPICYC_COL);
     h.circleScaled(x, y, radius);
-
     p.pop();
   };
 

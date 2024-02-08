@@ -15,7 +15,6 @@ const [WIDTH, HEIGHT] = [800, 700];
 const MODE = "polygon";
 
 const cliArgs = [
-  { name: "mode", alias: "m", type: String, defaultValue: "fourier" },
   {
     name: "input",
     alias: "i",
@@ -106,20 +105,10 @@ const parseSvg = (filePath, width, height, mode = "polyline") => {
     scalePolylinePoints(pl, width, height, svgW, svgH)
   );
 
-  if (args.mode == "file") {
-    writeToFile(scaled, width, height);
-    return;
+  if (scaled.length > 1) {
+    throw new Error("More than one polylines is not supported for fourier");
   }
-
-  if (args.mode === "fourier") {
-    if (scaled.length > 1) {
-      throw new Error("More than one polylines is not supported for fourier");
-    }
-    toFourier(scaled[0], width, height);
-    return;
-  }
-
-  throw new Error("Invalid mode: " + args.mode);
+  toFourier(scaled[0], width, height);
 };
 
 const toFourier = (polyline, width, height) => {
@@ -143,24 +132,6 @@ const toFourier = (polyline, width, height) => {
 
   const outPath = args.output;
   writeFileSync(outPath, data);
-  Log.i(`Written output to ${outPath}`);
-};
-
-// TODO get rid of raw point writes to file
-const writeToFile = (polylines, width, height) => {
-  const outPath = args.output;
-  writeFileSync(
-    outPath,
-    JSON.stringify(
-      {
-        polylines,
-        width,
-        height,
-      },
-      null,
-      /*space*/ 2
-    )
-  );
   Log.i(`Written output to ${outPath}`);
 };
 

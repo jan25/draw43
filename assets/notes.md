@@ -20,9 +20,7 @@ How to export SVG?
 
 ## TODO
 
-- Show % complete on zoom
 - Add restart drawing option during/on finish
 - make right i more accurate and the left nostril
 - github pages deployment
-- Make interaction simple. Loop: zoom out -> zoom in -> stop -> zoom out -> resume. zoom out on finish and disable controls. Space for desktop and Tap for mobile.
-- Offline support
+- Offline support. see https://developers.google.com/codelabs/pwa-training/pwa03--going-offline#3
