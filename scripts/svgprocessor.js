@@ -113,6 +113,7 @@ const parseSvg = (filePath, width, height, mode = "polyline") => {
 
 const toFourier = (polyline, width, height) => {
   const plObj = Polyline.fromRawPoints(polyline);
+  // Translate image so its center is at origin.
   const origin = plObj.avg();
   const series = plObj.translate(-origin.re, -origin.im).points;
   Log.i("applying fourier transform");
