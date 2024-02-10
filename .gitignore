@@ -10,6 +10,7 @@
 **/*outline*.json
 **/node_modules
 **/asciiartchars.*
+**/playground.*
 
 **/*.trash
 **/*.out

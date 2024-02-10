@@ -8,6 +8,8 @@ const { xml2js } = pkg;
 import _ from "lodash";
 import { Locker, Log, Polyline } from "../utils.js";
 import { Fourier } from "../fourier.js";
+import { run as jscodeshift } from "jscodeshift/src/Runner.js";
+import * as path from "path";
 
 Log.DEBUG_MODE = true;
 
@@ -52,6 +54,11 @@ const cliArgs = [
     type: String,
     defaultValue: "deadbeef",
   },
+  {
+    name: "name",
+    alias: "n",
+    type: String,
+  },
 ];
 const args = commandLineArgs(cliArgs);
 
@@ -84,7 +91,7 @@ const scalePolylinePoints = (polyline, targetW, targetH, srcW, srcH) => {
   return polyline;
 };
 
-const parseSvg = (filePath, width, height, mode = "polyline") => {
+const main = async (filePath, width, height, mode = "polyline") => {
   const data = readFileSync(filePath, "utf8").toString();
   const xml = xml2js(data);
 
@@ -108,15 +115,15 @@ const parseSvg = (filePath, width, height, mode = "polyline") => {
   if (scaled.length > 1) {
     throw new Error("More than one polylines is not supported for fourier");
   }
-  toFourier(scaled[0], width, height);
+  await toFourier(scaled[0], width, height);
 };
 
-const toFourier = (polyline, width, height) => {
+const toFourier = async (polyline, width, height) => {
   const plObj = Polyline.fromRawPoints(polyline);
   // Translate image so its center is at origin.
   const origin = plObj.avg();
   const series = plObj.translate(-origin.re, -origin.im).points;
-  Log.i("applying fourier transform");
+  Log.i("Applying fourier transform");
 
   const json = Fourier.transformAndEncode(
     series,
@@ -126,18 +133,37 @@ const toFourier = (polyline, width, height) => {
   );
   let data = JSON.stringify(json);
 
+  let mapName = "PUBL";
   if (args.encrypt) {
     Log.i("encrypting");
     data = Locker.lock(data, Locker.mk(args.key));
+    mapName = "PRIV";
   }
 
-  const outPath = args.output;
-  writeFileSync(outPath, data);
-  Log.i(`Written output to ${outPath}`);
+  if (args.name) {
+    await transformInputJs(mapName, args.name, data);
+    Log.i(`Updated input.js with key ${args.name}`);
+  } else {
+    const outPath = args.output;
+    writeFileSync(outPath, data);
+    Log.i(`Written output to ${outPath}`);
+  }
 };
 
 const elems = (elementsArr, fn = (e) => e.type == "element") => {
   return _.filter(elementsArr, fn);
 };
 
-parseSvg(args.input, args.width, args.height, MODE);
+const transformInputJs = async (mapName, k, v) => {
+  Log.i("Transforming input.js");
+  // paths relative to 'npm run svgprocessor' script
+  const transformPath = path.resolve("./scripts/input_transformer.ts");
+  const paths = [path.resolve("input.js")];
+  const options = {
+    mapName,
+    valuePairs: [[k, v]],
+  };
+  await jscodeshift(transformPath, paths, options);
+};
+
+await main(args.input, args.width, args.height, MODE);
