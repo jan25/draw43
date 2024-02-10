@@ -26,3 +26,4 @@ How to export SVG?
 - make right i more accurate and the left nostril
 - github pages deployment
 - Offline support. see https://developers.google.com/codelabs/pwa-training/pwa03--going-offline#3
+- Bug: speed is not working with ticks, high speed is keeping drawing finish much later into second stroke. See speed=4

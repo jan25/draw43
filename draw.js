@@ -44,7 +44,7 @@ let drawn = [];
 let frequencies;
 let zoomOn = false;
 let stopDrawing = false;
-let drawingDone = false; // TODO add restart feature on end
+let drawingDone = false;
 let currentScale = 1;
 let totalTicks;
 
@@ -57,7 +57,6 @@ export default new p5((p) => {
 
   // setup event handlers
   p.keyPressed = () => {
-    // TODO smooth zoom in/out
     // toggle zoom.
     if (p.keyCode == Z_KEY) {
       h.toggleZoom();
@@ -135,7 +134,6 @@ export default new p5((p) => {
 
     h.updateScale();
 
-    // TODO zoom out seems to be slower
     const { centerX, centerY } = h.getScaledOrigin(
       drawEnd.re + CENTER_X,
       drawEnd.im + CENTER_Y,
@@ -166,7 +164,7 @@ export default new p5((p) => {
   };
 
   h.updateScale = () => {
-    ZOOM_FAC += zoomOn ? ZOOM_SCALE_INC : -1 * ZOOM_SCALE_INC;
+    ZOOM_FAC += zoomOn ? ZOOM_SCALE_INC : -2 * ZOOM_SCALE_INC;
     ZOOM_FAC = Math.max(100, Math.min(ZOOM_FAC, ZOOM_SCALE_MAX));
     currentScale = ZOOM_FAC / 100;
   };

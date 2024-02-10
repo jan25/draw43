@@ -89,8 +89,8 @@ Fourier.countTicks = (frequencies, angleInc, halfFreqN) => {
     }
   };
 
-  const [N, minN, maxN] = [10, 50, 10000];
-  const err = 3;
+  const [N, minN, maxN] = [20, 50, 10000];
+  const err = 10;
   const shouldEnd = () => {
     if (points.length < minN) return false;
     if (points.length > maxN) return true;
