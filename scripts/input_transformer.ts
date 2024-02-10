@@ -11,9 +11,14 @@ module.exports = (file, api, options) => {
     .find(j.ObjectExpression)
     .forEach(obj => {
       // really only ever transforms 1 object in input.js
-      for (const [k, v] of valuePairs) {
-        obj.value.properties.push(j.property('init', j.identifier(k), j.literal(v)));
+      const updatedPairs = new Map();
+      for (const p of obj.value.properties) {
+        updatedPairs.set(p.key.name, p);
       }
+      for (const [k, v] of valuePairs) {
+        updatedPairs.set(k, j.property('init', j.identifier(k), j.literal(v)));
+      }
+      obj.value.properties = [...updatedPairs.values()]
     })
     .toSource();
 };
