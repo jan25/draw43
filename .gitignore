@@ -2,6 +2,7 @@
 **/*.jpg
 **/*.svg
 !rose.svg
+!logo.svg
 **/*.png
 !design.png
 **/*.blend*
