@@ -88,10 +88,8 @@ export default new p5((p) => {
       [CENTER_X, CENTER_Y] = [CANVAS_W / 2, CANVAS_H / 2];
     };
 
-    // Pre-req for computerFourier
-    SLOWNESS_FAC =
-      SLOWNESS_FAC /
-      Math.min(5, Math.max(1, parseInt(param("speed", () => 1))));
+    // Pre-req for computeFourier
+    SLOWNESS_FAC /= Math.min(5, Math.max(1, parseInt(param("speed", () => 1))));
 
     const computeFourier = () => {
       [HALF_N_FREQ, frequencies] = Fourier.decode(
@@ -264,7 +262,13 @@ export default new p5((p) => {
     for (const i in drawn) {
       if (i == 0) continue;
       // TODO use p5 bazier curves
-      h.lineScaled(drawn[i - 1].re, drawn[i - 1].im, drawn[i].re, drawn[i].im);
+      h.lineScaled(
+        drawn[i - 1].re,
+        drawn[i - 1].im,
+        drawn[i].re,
+        drawn[i].im,
+        IS_MOBILE ? 1.5 : 2
+      );
     }
     p.pop();
   };
@@ -285,9 +289,9 @@ export default new p5((p) => {
     p.stroke(ARROW_COL);
     p.translate(x, y);
     p.rotate(angle);
-    h.lineScaled(0, 0, mag, 0);
+    h.lineScaled(0, 0, mag, 0, 1);
     // TODO use applyMatrix to rotate and translate
-    const headSize = h.getArrowHeadSizeScaled(mag / 10);
+    const headSize = h.getArrowHeadSizeScaled(mag);
     p.translate(mag - headSize, 0);
     p.noStroke();
     p.fill(ARROW_COL);
@@ -310,9 +314,9 @@ export default new p5((p) => {
     p.pop();
   };
 
-  h.lineScaled = (x1, y1, x2, y2) => {
+  h.lineScaled = (x1, y1, x2, y2, strokeWeight = 2) => {
     p.push();
-    p.strokeWeight(2 / currentScale);
+    p.strokeWeight(strokeWeight / currentScale);
     p.line(x1, y1, x2, y2);
     p.pop();
   };
@@ -323,8 +327,8 @@ export default new p5((p) => {
     p.pop();
   };
 
-  h.getArrowHeadSizeScaled = (headSize) => {
+  h.getArrowHeadSizeScaled = (arrowSize) => {
     // TODO adaptive head size based on arrow length
-    return headSize;
+    return arrowSize / 7;
   };
 });
