@@ -2,8 +2,8 @@
 **/*.jpg
 **/*.svg
 !rose.svg
-!logo.svg
 **/*.png
+!logo.png
 !design.png
 **/*.blend*
 secret.md
