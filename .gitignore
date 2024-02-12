@@ -6,6 +6,7 @@
 **/*.png
 !design.png
 **/*.blend*
+secret.md
 
 **/package-lock.json
 **/*outline*.json
