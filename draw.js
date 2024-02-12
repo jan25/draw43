@@ -4,10 +4,10 @@ import { Fourier } from "./fourier.js";
 // colors
 const WHITE_COL = 255;
 const BLACK_COL = 0;
-const DIMBLACK_COL = 50;
+const DIMBLACK_COL = 100;
 const GREY_COL = 100;
 const DIMGREY_COL = 150;
-const DIMDIMGREY_COL = 220;
+const DIMDIMGREY_COL = 230;
 const BG_COL = WHITE_COL; // TODO use less bright col: e.g. light yellow
 const LINE_COL = DIMBLACK_COL;
 const ARROW_COL = DIMGREY_COL;
