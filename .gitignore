@@ -3,7 +3,7 @@
 **/*.svg
 !rose.svg
 **/*.png
-!logo.png
+!logo.jpeg
 !design.png
 **/*.blend*
 secret.md
